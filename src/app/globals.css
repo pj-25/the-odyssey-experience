@@ -1,26 +1,95 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #e8ecf6;
+  --ink-dim: #97a3bd;
+  --gold: #c9a86a;
+  --gold-bright: #e8cf9e;
+  --abyss: #050a14;
+  --panel: rgba(8, 14, 27, 0.78);
+  --hairline: rgba(201, 168, 106, 0.28);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-abyss: var(--abyss);
+  --font-display: var(--font-cormorant);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  background: var(--abyss);
+  color: var(--ink);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+::selection {
+  background: rgba(201, 168, 106, 0.35);
+}
+
+/* Display serif for titles and epigraphs */
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+/* Wide-tracked ritual capitals */
+.tracking-epic {
+  letter-spacing: 0.32em;
+}
+
+/* Frosted panel used by all overlays */
+.panel {
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--hairline);
+}
+
+/* Thin gold rule */
+.rule-gold {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--hairline) 20%,
+    var(--hairline) 80%,
+    transparent
+  );
+}
+
+/* Scrollable regions inside overlays */
+.scroll-quiet {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 106, 0.35) transparent;
+}
+.scroll-quiet::-webkit-scrollbar {
+  width: 5px;
+}
+.scroll-quiet::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 106, 0.35);
+  border-radius: 3px;
+}
+
+/* Focus visibility on a dark sea */
+:focus-visible {
+  outline: 1.5px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

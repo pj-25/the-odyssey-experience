@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Odyssey Experience
 
-## Getting Started
+*A voyage before the film.*
 
-First, run the development server:
+An immersive 3D web experience celebrating Christopher Nolan's **The
+Odyssey** (in theatres July 17, 2026). Visitors board an ancient ship on a
+cinematic night sea and drift through five chapters inspired by the epic's
+timeless themes — the journey, curiosity, courage, homecoming, and
+community — then leave their mark alongside travellers from around the
+world.
+
+Not a movie website. A once-in-a-generation cultural event, shared.
+
+## What's aboard
+
+- 🌊 **A living sea** — custom shader ocean, procedural ancient galley
+  riding the exact same wave field, seeded starfield, glowing moon,
+  drifting mist. Weather is narrative: the storm *arrives* in The Trials.
+- 📖 **Five chapters** — camera voyages between moods, each with a
+  public-domain Homer epigraph, a reflection, and a question to carry.
+- ⏳ **Global premiere countdown** — one clock, every visitor under it.
+- 🕯️ **Voyage Log** — reflections left before and after watching the film.
+- 🗺️ **Travellers' Map** — a hand-sketched chart; click to light your harbour.
+- 🧭 **The Navigator** — a spoiler-free companion for conversation about
+  Homer's epic, its history, and Nolan's craft.
+- 🏛️ **Personal journey & achievements** — your timeline of shores reached,
+  remembered between visits.
+- 🎼 **Generative ambience** — ocean and orchestral drone synthesized live
+  in WebAudio. Zero audio files.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+npm run build && npm run start   # production
+npm test                         # unit tests (vitest)
+npm run lint                     # eslint
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Optional env: `NEXT_PUBLIC_PREMIERE_ISO` overrides the premiere moment
+(defaults to `2026-07-17T00:00:00Z`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Docs
 
-## Learn More
+- `DESIGN.md` — creative vision, storyboard, user journey, IA, 3D world
+  design, motion & sound, component architecture, implementation plan,
+  performance strategy, roadmap.
+- `AGENTS.md` — engineering conventions for contributors (and agents).
+- `master-prompt.md` — the original brief.
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Next.js 16 · React 19 · TypeScript · React Three Fiber / Three.js · GSAP ·
+Framer Motion · Tailwind CSS 4 · zustand · vitest.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Accessibility: server-rendered narrative for crawlers and screen readers,
+full keyboard navigation, `prefers-reduced-motion` support, `noscript`
+fallback.
