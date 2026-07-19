@@ -10,6 +10,9 @@ import { FRAGMENT_COUNT, POIS } from "./world";
 
 export type WorldMode = "sailing" | "cinematic" | "underwater";
 
+/** Where the visitor watches from: astern chase or standing on deck */
+export type CameraView = "chase" | "deck";
+
 interface VoyageState {
   /** Has the visitor pressed "Begin the Voyage" yet */
   embarked: boolean;
@@ -20,6 +23,7 @@ interface VoyageState {
   mode: WorldMode;
   /** Sails raised (drawing wind) or furled */
   sailsUp: boolean;
+  cameraView: CameraView;
   /** Star navigation view active (C) */
   consultingStars: boolean;
   /** Discovery overlay currently shown (poi id or event id) */
@@ -32,6 +36,7 @@ interface VoyageState {
   setJournalOpen: (open: boolean) => void;
   setMode: (mode: WorldMode) => void;
   setSailsUp: (up: boolean) => void;
+  toggleCameraView: () => void;
   setConsultingStars: (on: boolean) => void;
   setOverlay: (id: string | null) => void;
   setPuzzle: (p: "temple" | "cave" | null) => void;
@@ -44,6 +49,7 @@ export const useVoyage = create<VoyageState>((set) => ({
   journalOpen: false,
   mode: "sailing",
   sailsUp: true,
+  cameraView: "chase",
   consultingStars: false,
   overlay: null,
   puzzle: null,
@@ -56,6 +62,8 @@ export const useVoyage = create<VoyageState>((set) => ({
   setJournalOpen: (journalOpen) => set({ journalOpen }),
   setMode: (mode) => set({ mode }),
   setSailsUp: (sailsUp) => set({ sailsUp }),
+  toggleCameraView: () =>
+    set((s) => ({ cameraView: s.cameraView === "chase" ? "deck" : "chase" })),
   setConsultingStars: (consultingStars) => set({ consultingStars }),
   setOverlay: (overlay) => set({ overlay }),
   setPuzzle: (puzzle) => set({ puzzle }),

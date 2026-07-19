@@ -28,6 +28,8 @@ export default function HelmHUD() {
   const sailsUp = useVoyage((s) => s.sailsUp);
   const consultingStars = useVoyage((s) => s.consultingStars);
   const mode = useVoyage((s) => s.mode);
+  const cameraView = useVoyage((s) => s.cameraView);
+  const toggleCameraView = useVoyage((s) => s.toggleCameraView);
   const setJournalOpen = useVoyage((s) => s.setJournalOpen);
   const fragments = useExploration((s) => fragmentsOf(s.discoveries));
   const discoveries = useExploration((s) => s.discoveries);
@@ -176,6 +178,27 @@ export default function HelmHUD() {
       >
         <button
           type="button"
+          onClick={toggleCameraView}
+          aria-label={
+            cameraView === "chase"
+              ? "Step aboard — view from the deck"
+              : "Step back — view from astern"
+          }
+          aria-pressed={cameraView === "deck"}
+          className={`panel rounded-full px-4 h-10 flex items-center gap-2 text-xs uppercase tracking-widest transition-colors cursor-pointer ${
+            cameraView === "deck"
+              ? "text-gold-bright border-gold/60"
+              : "text-ink-dim hover:text-gold-bright"
+          }`}
+        >
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+            <rect x="3" y="7" width="15" height="11" rx="2" />
+            <path d="M18 10.5l4-2.5v9l-4-2.5" />
+          </svg>
+          {cameraView === "deck" ? "On deck" : "Astern"}
+        </button>
+        <button
+          type="button"
           onClick={() => setShowHelp((v) => !v)}
           aria-label="Show sailing controls"
           className="panel w-10 h-10 rounded-full text-ink-dim hover:text-gold-bright transition-colors cursor-pointer"
@@ -210,6 +233,7 @@ export default function HelmHUD() {
               <span><Kbd>W</Kbd><Kbd>S</Kbd> trim sails</span>
               <span><Kbd>Space</Kbd> set / furl</span>
               <span><Kbd>C</Kbd> read the stars</span>
+              <span><Kbd>V</Kbd> step aboard</span>
               <span><Kbd>E</Kbd> act</span>
             </div>
             <p className="text-center text-[11px] text-ink-dim/70 mt-2 font-display italic">

@@ -10,6 +10,7 @@ import {
   type ShipState,
 } from "@/lib/sailing";
 import { nearestSecret } from "@/lib/navigator-brain";
+import { waveHeight } from "@/lib/waves";
 import {
   POIS,
   stormIntensityAt,
@@ -123,6 +124,7 @@ export default function ShipController({ env }: { env: EnvRefs }) {
       }
       if (k === "c" && st.embarked) st.setConsultingStars(!st.consultingStars);
       if (k === "e" && st.embarked) performAction();
+      if (k === "v" && st.embarked) st.toggleCameraView();
       if (k === "escape") {
         st.setOverlay(null);
         st.setPuzzle(null);
@@ -245,6 +247,7 @@ export default function ShipController({ env }: { env: EnvRefs }) {
     /* ---------------- Camera ---------------- */
     let targetPos: THREE.Vector3;
     let targetLook: THREE.Vector3;
+    let camStiffness = 1.8;
     if (voyage.mode === "underwater") {
       diveAngle.current += dt * 0.07;
       const a = diveAngle.current;
@@ -254,6 +257,27 @@ export default function ShipController({ env }: { env: EnvRefs }) {
         DIVE_POI.z + Math.sin(a) * 26,
       );
       targetLook = new THREE.Vector3(DIVE_POI.x, -10, DIVE_POI.z);
+    } else if (voyage.cameraView === "deck" && !voyage.overlay) {
+      // On deck: standing at the prow — forward of the sail, so the sea
+      // ahead stays open — eyes riding the actual swell. Local offset
+      // (abeam, along-keel) rotated into the world by heading.
+      const lx = 0.55;
+      const lz = -3.5; // forward of the mast, just aft of the stem post
+      const wx = x + lx * Math.cos(heading) - lz * Math.sin(heading);
+      const wz = z + lx * Math.sin(heading) + lz * Math.cos(heading);
+      const deckY =
+        waveHeight(x, z, t, env.waveAmp.current) + 0.35 + 2.05;
+      targetPos = new THREE.Vector3(wx, deckY, wz);
+      // Gaze past the mast at the sea ahead, with a slow natural sway
+      const sway = Math.sin(t * 0.35) * 1.6;
+      targetLook = new THREE.Vector3(
+        x + Math.sin(heading) * 40 + Math.cos(heading) * sway,
+        deckY - 0.6 + Math.sin(t * 0.5) * 0.35,
+        z - Math.cos(heading) * 40 + Math.sin(heading) * sway,
+      );
+      // The head tracks the deck tightly — a soft camera here reads as
+      // floating off the ship, not standing on it
+      camStiffness = 7;
     } else {
       // Chase camera: behind and above, craned up while reading an overlay
       const crane = voyage.overlay ? 1 : 0;
@@ -267,25 +291,26 @@ export default function ShipController({ env }: { env: EnvRefs }) {
         2.5 + Math.sin(t * 0.2) * 0.4,
         z - Math.cos(heading) * 14,
       );
-      // Consulting the stars turns the gaze to the guiding constellation
-      if (voyage.consultingStars) {
-        const secret = nearestSecret({
-          shipX: x,
-          shipZ: z,
-          discoveredIds: exploration.discoveries.map((d) => d.poiId),
-          fragments: fragmentsOf(exploration.discoveries),
-          stormNearby: false,
-          beaconLit: exploration.beaconLit,
-        });
-        if (secret) {
-          const b = bearingTo(x, z, secret.x, secret.z);
-          targetLook.set(x + Math.sin(b) * 90, 62, z - Math.cos(b) * 90);
-        } else {
-          targetLook.y = 60;
-        }
+    }
+    // Consulting the stars turns the gaze to the guiding constellation
+    // from either viewpoint (deck or chase)
+    if (voyage.mode !== "underwater" && voyage.consultingStars) {
+      const secret = nearestSecret({
+        shipX: x,
+        shipZ: z,
+        discoveredIds: exploration.discoveries.map((d) => d.poiId),
+        fragments: fragmentsOf(exploration.discoveries),
+        stormNearby: false,
+        beaconLit: exploration.beaconLit,
+      });
+      if (secret) {
+        const b = bearingTo(x, z, secret.x, secret.z);
+        targetLook.set(x + Math.sin(b) * 90, 62, z - Math.cos(b) * 90);
+      } else {
+        targetLook.y = 60;
       }
     }
-    const ck = 1 - Math.exp(-dt * 1.8);
+    const ck = 1 - Math.exp(-dt * camStiffness);
     camPos.current.lerp(targetPos, ck);
     camLook.current.lerp(targetLook, ck);
     camera.position.copy(camPos.current);

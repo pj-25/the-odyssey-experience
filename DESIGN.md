@@ -20,7 +20,10 @@ that grows with way, first-order acceleration. A/D steer, W/S trim, Space
 sets or furls, and the compass rose shows ship's head and the gold wind
 needle. Soft collision cores (`KEEP_OUTS`) keep rock solid while leaving
 the Siren Gates' passage sailable. The pose persists — returning
-travellers resume where they anchored.
+travellers resume where they anchored. **Two ways to watch:** the astern
+chase camera, or V to step aboard — a first-person view from the prow,
+eyes riding the actual swell, lantern-lit planking underfoot (discovery
+moments still crane out to the cinematic view).
 
 **Navigation by constellation.** Six invented constellations (Gates,
 Watcher, Lantern, Flame, Amphora, Crown) each point to a place. Pressing C
