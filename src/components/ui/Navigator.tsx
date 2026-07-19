@@ -99,12 +99,13 @@ export default function Navigator() {
       <AnimatePresence>
         {open && (
           <motion.aside
-            className="fixed top-20 right-6 bottom-6 z-40 w-[calc(100vw-3rem)] sm:w-96 panel rounded-xl flex flex-col"
+            className="fixed z-40 panel flex flex-col inset-x-0 bottom-0 h-[72dvh] rounded-t-2xl sm:inset-x-auto sm:top-20 sm:right-6 sm:bottom-6 sm:h-auto sm:w-96 sm:rounded-xl"
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
             role="complementary"
             aria-label="Navigator conversation"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } }}
-            exit={{ opacity: 0, x: 40, transition: { duration: 0.3 } }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }}
+            exit={{ opacity: 0, y: 40, transition: { duration: 0.3 } }}
           >
             <header className="px-5 pt-4 pb-3">
               <p className="text-[10px] uppercase tracking-epic text-gold">Ship&apos;s counsel</p>

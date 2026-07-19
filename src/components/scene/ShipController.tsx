@@ -24,7 +24,9 @@ import {
   useMemoryBoard,
   fragmentsOf,
   shipPose,
+  helmInput,
 } from "@/lib/store";
+import { haptic } from "@/lib/device";
 import Ship from "./Ship";
 import type { EnvRefs } from "./OdysseyScene";
 
@@ -152,9 +154,15 @@ export default function ShipController({ env }: { env: EnvRefs }) {
 
     if (voyage.embarked && voyage.mode === "sailing") {
       const k = keys.current;
-      const rudder =
-        (k.has("a") || k.has("arrowleft") ? -1 : 0) +
-        (k.has("d") || k.has("arrowright") ? 1 : 0);
+      const rudder = Math.max(
+        -1,
+        Math.min(
+          1,
+          (k.has("a") || k.has("arrowleft") ? -1 : 0) +
+            (k.has("d") || k.has("arrowright") ? 1 : 0) +
+            helmInput.touchRudder,
+        ),
+      );
       if (k.has("w") || k.has("arrowup"))
         trim.current = Math.min(1.25, trim.current + dt * 0.8);
       if (k.has("s") || k.has("arrowdown"))
@@ -189,7 +197,8 @@ export default function ShipController({ env }: { env: EnvRefs }) {
       const k = keys.current;
       const rudder =
         (k.has("a") || k.has("arrowleft") ? -1 : 0) +
-        (k.has("d") || k.has("arrowright") ? 1 : 0);
+        (k.has("d") || k.has("arrowright") ? 1 : 0) +
+        helmInput.touchRudder;
       const crosswind = voyage.sailsUp
         ? Math.sin(wind.direction - heading) * wind.strength
         : 0;
@@ -229,6 +238,7 @@ export default function ShipController({ env }: { env: EnvRefs }) {
         ) {
           exploration.discover(poi.id);
           voyage.setOverlay(poi.id);
+          haptic([30, 60, 30]); // land ho — a double pulse in the palm
           if (poi.id === "hiddenCity") exploration.completeHomecoming();
         }
       }
@@ -279,10 +289,15 @@ export default function ShipController({ env }: { env: EnvRefs }) {
       // floating off the ship, not standing on it
       camStiffness = 7;
     } else {
-      // Chase camera: behind and above, craned up while reading an overlay
+      // Chase camera: behind and above, craned up while reading an overlay.
+      // Portrait screens get more distance and height so the ship sits
+      // composed in the taller, narrower frame instead of filling it.
+      const aspect =
+        (camera as THREE.PerspectiveCamera).aspect ?? 1.6;
+      const portrait = Math.max(0, Math.min(1, (1.0 - aspect) * 2.2));
       const crane = voyage.overlay ? 1 : 0;
-      const back = 26 + crane * 10 + speed * 0.5;
-      const height = 8.5 + crane * 5;
+      const back = 26 + crane * 10 + speed * 0.5 + portrait * 9;
+      const height = 8.5 + crane * 5 + portrait * 3;
       const bx = x - Math.sin(heading) * back;
       const bz = z + Math.cos(heading) * back;
       targetPos = new THREE.Vector3(bx, height, bz);
@@ -324,10 +339,11 @@ export default function ShipController({ env }: { env: EnvRefs }) {
   );
 }
 
-/** Perform the currently-available E action. */
-function performAction() {
+/** Perform the currently-available E action (key, or tap on the HUD pill). */
+export function performAction() {
   const action = helmAction.current;
   if (!action) return;
+  haptic(24);
   const voyage = useVoyage.getState();
   const exploration = useExploration.getState();
   switch (action.id) {

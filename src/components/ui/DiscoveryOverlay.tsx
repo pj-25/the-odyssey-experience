@@ -81,16 +81,19 @@ export default function DiscoveryOverlay() {
         <motion.section
           key={overlay}
           aria-live="polite"
-          className="fixed bottom-24 left-6 right-6 sm:left-12 sm:right-auto sm:max-w-md z-30"
+          className="fixed bottom-0 inset-x-0 sm:bottom-24 sm:left-12 sm:right-auto sm:inset-x-auto sm:max-w-md z-30"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0, transition: { duration: 1.1, ease: "easeOut" } }}
           exit={{ opacity: 0, y: -12, transition: { duration: 0.4 } }}
         >
-          <div className="panel rounded-lg p-6 sm:p-8">
+          <div
+            className="panel rounded-t-2xl sm:rounded-lg p-5 sm:p-8 max-h-[62vh] sm:max-h-none overflow-y-auto scroll-quiet"
+            style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom, 0px))" }}
+          >
             <p className="text-[10px] uppercase tracking-epic text-gold mb-2">
               {card.kicker}
             </p>
-            <h2 className="font-display text-3xl sm:text-4xl font-light text-ink">
+            <h2 className="font-display text-2xl sm:text-4xl font-light text-ink">
               {card.title}
             </h2>
             <p className="font-display italic text-ink-dim mt-1">{card.subtitle}</p>

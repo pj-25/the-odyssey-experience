@@ -29,7 +29,7 @@ export default function Hero() {
           </motion.p>
 
           <motion.h1
-            className="relative font-display text-6xl sm:text-8xl md:text-9xl text-ink font-light"
+            className="relative font-display text-[10.5vw] leading-none sm:text-8xl md:text-9xl text-ink font-light"
             initial={{ opacity: 0, letterSpacing: "0.4em" }}
             animate={{
               opacity: 1,

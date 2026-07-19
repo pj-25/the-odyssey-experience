@@ -33,7 +33,7 @@ export default function Journal() {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-8"
+          className="fixed inset-0 z-40 flex items-end sm:items-center justify-center p-0 sm:p-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -48,13 +48,17 @@ export default function Journal() {
             className="absolute inset-0 bg-abyss/70 backdrop-blur-sm cursor-default"
           />
           <motion.div
-            className="panel relative rounded-xl w-full max-w-3xl max-h-[85vh] flex flex-col"
+            className="panel relative rounded-t-2xl sm:rounded-xl w-full max-w-3xl max-h-[88dvh] sm:max-h-[85vh] flex flex-col"
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
             initial={{ opacity: 0, y: 30, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: "easeOut" } }}
             exit={{ opacity: 0, y: 20, transition: { duration: 0.25 } }}
           >
-            <header className="flex items-center justify-between px-6 pt-5 pb-4">
-              <nav className="flex gap-1 flex-wrap" aria-label="Journal sections">
+            <header className="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 gap-2">
+              <nav
+                className="flex gap-1 overflow-x-auto scroll-quiet whitespace-nowrap"
+                aria-label="Journal sections"
+              >
                 {TABS.map(([t, label]) => (
                   <button
                     key={t}
@@ -82,7 +86,7 @@ export default function Journal() {
             </header>
             <div className="rule-gold" />
 
-            <div className="scroll-quiet px-6 py-6 flex-1">
+            <div className="scroll-quiet px-4 sm:px-6 py-5 sm:py-6 flex-1">
               {tab === "chart" && <ChartTab />}
               {tab === "log" && <VoyageLog />}
               {tab === "map" && <WorldMap />}

@@ -70,6 +70,15 @@ export const useVoyage = create<VoyageState>((set) => ({
 }));
 
 /**
+ * Touch helm input, shared outside React: the drag-tiller writes here and
+ * the ship controller reads it every frame alongside the keyboard.
+ */
+export const helmInput = {
+  /** -1 (full port) .. 1 (full starboard) from the touch tiller */
+  touchRudder: 0,
+};
+
+/**
  * Per-frame ship pose, shared outside React so the HUD can sample it
  * without causing re-renders on the 60 fps path.
  */

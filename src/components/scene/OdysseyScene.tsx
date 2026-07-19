@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import {
   environmentAt,
@@ -166,6 +166,22 @@ function SkyAnchor({ env, quality }: { env: EnvRefs; quality: "high" | "low" }) 
   );
 }
 
+/**
+ * Adaptive cinematography: three.js FOV is vertical, so a portrait phone
+ * showing the desktop FOV crops the world to a slot. Widen it as the
+ * frame narrows so the sea, ship, and sky stay composed together.
+ */
+function ResponsiveLens() {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    const cam = camera as THREE.PerspectiveCamera;
+    const aspect = size.width / Math.max(1, size.height);
+    cam.fov = aspect < 0.7 ? 74 : aspect < 1.0 ? 66 : 55;
+    cam.updateProjectionMatrix();
+  }, [camera, size.width, size.height]);
+  return null;
+}
+
 function useQuality(): "high" | "low" {
   return useMemo(() => {
     if (typeof navigator === "undefined") return "high";
@@ -203,7 +219,7 @@ export default function OdysseyScene() {
   return (
     <div className="fixed inset-0" aria-hidden="true">
       <Canvas
-        dpr={quality === "high" ? [1, 2] : 1}
+        dpr={quality === "high" ? [1, 2] : [1, 1.5]}
         camera={{ position: [0, 7, 42], fov: 55, near: 0.1, far: 1100 }}
         gl={{ antialias: quality === "high", powerPreference: "high-performance" }}
         onCreated={({ gl, scene }) => {
@@ -213,6 +229,7 @@ export default function OdysseyScene() {
           scene.background = new THREE.Color(first.skyColor);
         }}
       >
+        <ResponsiveLens />
         <EnvironmentDirector env={env} />
         <AmbientRig env={env} />
         {/* Sky bounce so the ship reads as form, not silhouette */}

@@ -32,9 +32,12 @@ Tailwind 4 (`@theme inline` in `globals.css`) · zustand 5.
 - **Single route.** The whole experience lives at `/`; world state is
   zustand (`useVoyage`, `useExploration`), not URLs.
 - **Refs across the React/three boundary.** Per-frame values live in
-  mutable refs and the `shipPose` module singleton, never React state; the
-  HUD samples `shipPose` on an interval. No allocations inside `useFrame`
-  callbacks.
+  mutable refs and the `shipPose`/`helmInput` module singletons, never
+  React state; the HUD samples `shipPose` on an interval and the touch
+  tiller writes `helmInput`. No allocations inside `useFrame` callbacks.
+- **Input is capability-detected, not device-sniffed.** `pointer: coarse`
+  (`src/lib/device.ts`) decides between gesture and keyboard affordances;
+  every action must remain reachable by both a button and a key.
 - **Gameplay logic is pure and tested.** Sailing physics
   (`src/lib/sailing.ts`), world layout/environment/collision
   (`src/lib/world.ts`), puzzles (`src/lib/puzzles.ts`), constellations

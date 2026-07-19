@@ -41,7 +41,7 @@ export default function PuzzlePanel() {
             className="absolute inset-0 bg-abyss/75 backdrop-blur-sm cursor-default"
           />
           <motion.div
-            className="panel relative rounded-xl w-full max-w-lg p-8"
+            className="panel relative rounded-xl w-full max-w-lg p-6 sm:p-8 max-h-[90dvh] overflow-y-auto scroll-quiet"
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: "easeOut" } }}
             exit={{ opacity: 0, y: 16, transition: { duration: 0.25 } }}

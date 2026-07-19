@@ -63,6 +63,20 @@ the constellation to follow; asked for progress it recounts discoveries;
 its storm and beacon answers change with the world's state. The knowledge
 base (Homer, themes, Nolan's craft, spoiler policy) remains beneath.
 
+**Designed for the device in your hands.** On touch devices the helm
+becomes gestural: drag anywhere on the sea and a tiller appears under
+your thumb (port/starboard by feel); the speed dial is the sail control
+(tap to set/furl); ✦ consults the stars; and the contextual "golden
+prompt" is the same tappable button that E triggers on a keyboard.
+Discoveries land with a double haptic pulse where the platform offers
+one. The legend teaches gestures to thumbs and keys to keyboards —
+detected via `pointer: coarse`, never user-agent sniffing. Adaptive
+cinematography: vertical FOV widens as the frame narrows (55° → 74°) and
+the chase camera pulls back and up in portrait, so phone framing is
+composed, not cropped; overlays and the Navigator become bottom sheets
+sized for one-handed reach, with safe-area insets respected. Quality
+tiers cap devicePixelRatio and particle counts on constrained hardware.
+
 ---
 
 ## 1. Creative Vision
