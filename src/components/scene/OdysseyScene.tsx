@@ -18,7 +18,7 @@ import Islands from "./Islands";
 import Wildlife from "./Wildlife";
 import SkyEvents from "./SkyEvents";
 import Underwater from "./Underwater";
-import { Stars, Moon, Mist, MOON_POSITION } from "./NightSky";
+import { Stars, Moon, Mist, Clouds, MOON_POSITION } from "./NightSky";
 
 /**
  * The scene director for an open world. The environment is no longer a
@@ -53,6 +53,7 @@ function EnvironmentDirector({ env }: { env: EnvRefs }) {
     tmpB: new THREE.Color(),
   });
   const nextBolt = useRef(4);
+  const nextFarFlash = useRef(18);
 
   useFrame(({ scene, clock }, dt) => {
     const d = Math.min(dt, 0.05);
@@ -109,6 +110,15 @@ function EnvironmentDirector({ env }: { env: EnvRefs }) {
         nextBolt.current = 2.5 + Math.random() * 6 * (1.2 - stormT);
         ambience.thunder(stormT);
       }
+    } else if (mode === "sailing") {
+      // Heat lightning on the far horizon: the storm announcing itself
+      // to calm water — a faint flicker and the lowest roll of thunder
+      nextFarFlash.current -= d;
+      if (nextFarFlash.current <= 0) {
+        env.lightning.current = Math.max(env.lightning.current, 0.14);
+        nextFarFlash.current = 26 + Math.random() * 30;
+        ambience.thunder(0.06);
+      }
     }
     env.lightning.current = Math.max(0, env.lightning.current - d * 3.2);
 
@@ -161,6 +171,7 @@ function SkyAnchor({ env, quality }: { env: EnvRefs; quality: "high" | "low" }) 
       <Stars count={quality === "high" ? 2400 : 1100} />
       <Moon intensityRef={env.moonIntensity} lightningRef={env.lightning} />
       <Mist count={quality === "high" ? 14 : 7} />
+      <Clouds count={quality === "high" ? 7 : 4} />
       <SkyEvents quality={quality} />
     </group>
   );
@@ -241,6 +252,7 @@ export default function OdysseyScene() {
           moonIntensityRef={env.moonIntensity}
           waterColorRef={env.waterColor}
           fogColorRef={env.fogColor}
+          lightningRef={env.lightning}
           moonDirection={moonDir}
           quality={quality}
         />

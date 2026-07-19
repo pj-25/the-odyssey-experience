@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { WAVE_GLSL } from "@/lib/waves";
 import { KEEP_OUTS } from "@/lib/world";
-import { shipPose } from "@/lib/store";
+import { shipPose, useExploration } from "@/lib/store";
 
 const VERTEX = /* glsl */ `
   uniform float uTime;
@@ -53,6 +53,12 @@ const FRAGMENT = /* glsl */ `
   uniform vec4 uShip;
   // Island cores: xy = centre, z = radius — for shore foam
   uniform vec3 uShores[7];
+  // Warm lights living on the water: xy = position, z = intensity,
+  // w = falloff. A = the ship's lantern, B = the watchfire.
+  uniform vec4 uGlowA;
+  uniform vec4 uGlowB;
+  // Lightning flash factor 0..1 — the sky mirrored in the sea
+  uniform float uLightning;
 
   varying vec3 vWorldPos;
   varying vec3 vNormal;
@@ -125,6 +131,20 @@ const FRAGMENT = /* glsl */ `
     float diff = max(dot(normal, uMoonDir), 0.0);
     color += uMoonColor * diff * 0.05 * uMoonIntensity;
 
+    // Firelight on the water: lantern and watchfire, rippled by the waves
+    {
+      vec3 fire = vec3(1.0, 0.58, 0.26);
+      vec2 dA = wp - uGlowA.xy;
+      float ripple = 0.75 + 0.25 * sin(vHeight * 4.0 + uTime * 2.2);
+      color += fire * (uGlowA.z / (1.0 + dot(dA, dA) * uGlowA.w)) * ripple;
+      vec2 dB = wp - uGlowB.xy;
+      color += fire * (uGlowB.z / (1.0 + dot(dB, dB) * uGlowB.w)) * ripple;
+    }
+
+    // Lightning: the whole sea blinks silver with the sky
+    color += vec3(0.55, 0.62, 0.78) * uLightning *
+             (0.18 + 0.35 * max(dot(normal, vec3(0.0, 1.0, 0.0)), 0.0));
+
     /* --- Foam ---------------------------------------------------- */
     float foam = 0.0;
     float foamNoise = fbm(wp * 0.4 + vec2(uTime * 0.1, uTime * -0.08));
@@ -179,6 +199,7 @@ interface OceanProps {
   moonIntensityRef: React.MutableRefObject<number>;
   waterColorRef: React.MutableRefObject<THREE.Color>;
   fogColorRef: React.MutableRefObject<THREE.Color>;
+  lightningRef: React.MutableRefObject<number>;
   moonDirection: THREE.Vector3;
   quality: "high" | "low";
 }
@@ -189,6 +210,7 @@ export default function Ocean({
   moonIntensityRef,
   waterColorRef,
   fogColorRef,
+  lightningRef,
   moonDirection,
   quality,
 }: OceanProps) {
@@ -215,6 +237,9 @@ export default function Ocean({
       uShores: {
         value: KEEP_OUTS.map((k) => new THREE.Vector3(k.x, k.z, k.r)),
       },
+      uGlowA: { value: new THREE.Vector4(0, 15, 0.35, 0.4) },
+      uGlowB: { value: new THREE.Vector4(210, 60, 0, 0.02) },
+      uLightning: { value: 0 },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -236,6 +261,21 @@ export default function Ocean({
       shipPose.heading,
       shipPose.speed,
     );
+    // Lantern glow rides at the bow; flame flickers
+    const t = clock.elapsedTime;
+    (m.uniforms.uGlowA.value as THREE.Vector4).set(
+      shipPose.x + Math.sin(shipPose.heading) * 4.9,
+      shipPose.z - Math.cos(shipPose.heading) * 4.9,
+      0.32 + Math.sin(t * 9.3) * 0.05 + Math.sin(t * 23.7) * 0.03,
+      0.38,
+    );
+    // The watchfire pours warmth across its whole bay once lit
+    (m.uniforms.uGlowB.value as THREE.Vector4).w = 0.012;
+    (m.uniforms.uGlowB.value as THREE.Vector4).z = useExploration.getState()
+      .beaconLit
+      ? 2.6 + Math.sin(t * 11.3) * 0.35
+      : 0;
+    m.uniforms.uLightning.value = lightningRef.current;
     // Follow the ship on the grid
     if (meshRef.current) {
       meshRef.current.position.x =

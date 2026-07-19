@@ -48,8 +48,20 @@ of position (`environmentAt`): the storm builds across its rim, the
 harbour calms the water, the cave hushes the sky, dawn breaks near the
 finished chart's city. Dolphins pace a moving ship, gulls wheel over land,
 a whale surfaces in deep water every few minutes, shooting stars cross on
-their own schedule, rain and lightning live inside the storm, and the
-aurora is a permanent gift after the beacon is lit.
+their own schedule, clouds drift across the moon, rain and lightning live
+inside the storm — and from calm water, heat lightning flickers on the
+horizon every half-minute or so, the storm announcing itself. The aurora
+is a permanent gift after the beacon is lit.
+
+**Cinematic camera & light.** Taking the helm is a descent: the frame
+opens high and wide and settles astern. Every discovery slowly orbits the
+ship while its card is open, then eases back. The storm gets into the
+camera — a tremor with each bolt, a low shudder in heavy seas. Light
+lives on the water: the bow lantern lays a flickering warm pool that
+sails with you, the lit watchfire pours firelight across its whole bay,
+and every lightning flash blinks silver across the sea and sky together.
+The sail is honest rigging: full-bellied and taut running before the
+wind, slack and shivering when pinched against it.
 
 **Puzzles** are optional, forgiving (wrong step = gentle reset), validated
 by pure logic (`src/lib/puzzles.ts`), and pay out in *story and world

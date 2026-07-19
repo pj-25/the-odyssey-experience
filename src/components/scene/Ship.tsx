@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { waveHeight, waveSlope } from "@/lib/waves";
 import { hullPoint, halfBeam, sheerHeight, HULL_LENGTH } from "@/lib/hull";
+import { sailEfficiency } from "@/lib/sailing";
 import { shipPose, useVoyage } from "@/lib/store";
 
 /**
@@ -199,13 +200,21 @@ export default function Ship({ waveAmpRef }: ShipProps) {
       const pos = sail.geometry.attributes.position as THREE.BufferAttribute;
       const base = (sail.geometry as THREE.BufferGeometry).userData
         .belly as Float32Array;
+      // The belly follows the wind: full and taut running before it,
+      // slack and rippling when pinched against it
+      const draw = sailEfficiency(shipPose.heading, {
+        direction: shipPose.windDirection,
+        strength: shipPose.windStrength,
+      });
+      const fullness = 0.35 + draw * 0.75;
+      const luff = (1.1 - draw) * 0.09; // slack cloth shivers
       for (let i = 0; i < pos.count; i++) {
         const bx = pos.getX(i);
         const by = pos.getY(i);
         pos.setZ(
           i,
-          base[i] * (0.85 + Math.sin(t * 1.7) * 0.15) +
-            Math.sin(t * 2.3 + bx * 1.8 + by * 1.1) * 0.05,
+          base[i] * fullness * (0.92 + Math.sin(t * 1.7) * 0.08) +
+            Math.sin(t * 2.8 + bx * 2.1 + by * 1.3) * luff,
         );
       }
       pos.needsUpdate = true;

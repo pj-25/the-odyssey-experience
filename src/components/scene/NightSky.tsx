@@ -204,6 +204,79 @@ export function Moon({
   );
 }
 
+/** High clouds: broad soft billboards crossing the moon on the night wind. */
+export function Clouds({ count = 7 }: { count?: number }) {
+  const group = useRef<THREE.Group>(null);
+
+  const texture = useMemo(() => {
+    if (typeof document === "undefined") return null;
+    const size = 256;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size / 2;
+    const c = canvas.getContext("2d")!;
+    // Three overlapping soft lobes read as one cloud mass
+    let seed = 5;
+    const rand = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+    for (let i = 0; i < 3; i++) {
+      const cx = size * (0.3 + rand() * 0.4);
+      const cy = (size / 2) * (0.4 + rand() * 0.25);
+      const r = size * (0.16 + rand() * 0.12);
+      const grad = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, "rgba(165, 180, 205, 0.16)");
+      grad.addColorStop(0.65, "rgba(150, 165, 195, 0.07)");
+      grad.addColorStop(1, "rgba(140, 155, 185, 0)");
+      c.fillStyle = grad;
+      c.fillRect(0, 0, size, size / 2);
+    }
+    return new THREE.CanvasTexture(canvas);
+  }, []);
+
+  const banks = useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => ({
+        x: (Math.sin(i * 2.7) * 0.5 + (i / count - 0.5)) * 480,
+        y: 95 + (i % 3) * 22,
+        z: (Math.cos(i * 1.9) * 0.5 - 0.15) * 460,
+        scale: 90 + (i % 4) * 34,
+        speed: 1.1 + (i % 3) * 0.5,
+      })),
+    [count],
+  );
+
+  useFrame(({ clock }) => {
+    const g = group.current;
+    if (!g) return;
+    const t = clock.elapsedTime;
+    g.children.forEach((child, i) => {
+      const b = banks[i];
+      // Drift east, wrap around the dome
+      const x = ((b.x + t * b.speed + 480) % 960) - 480;
+      child.position.set(x, b.y, b.z);
+    });
+  });
+
+  if (!texture) return null;
+
+  return (
+    <group ref={group}>
+      {banks.map((b, i) => (
+        <sprite key={i} position={[b.x, b.y, b.z]} scale={[b.scale, b.scale * 0.32, 1]}>
+          <spriteMaterial
+            map={texture}
+            transparent
+            depthWrite={false}
+            opacity={0.85}
+          />
+        </sprite>
+      ))}
+    </group>
+  );
+}
+
 /** Low drifting mist: soft billboards skimming the water. */
 export function Mist({ count = 14 }: { count?: number }) {
   const group = useRef<THREE.Group>(null);

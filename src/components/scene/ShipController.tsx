@@ -103,13 +103,22 @@ export default function ShipController({ env }: { env: EnvRefs }) {
   const camPos = useRef(new THREE.Vector3(0, 7, 62));
   const camLook = useRef(new THREE.Vector3(0, 3, 0));
   const diveAngle = useRef(0);
+  const orbit = useRef(0);
 
-  // Restore the previous voyage's position
+  // Restore the previous voyage's position; open on a high, wide frame
+  // so taking the helm reads as a descent down to the water
   useEffect(() => {
     ship.current = loadPose();
     shipPose.x = ship.current.x;
     shipPose.z = ship.current.z;
     shipPose.heading = ship.current.heading;
+    const { x, z, heading } = ship.current;
+    camPos.current.set(
+      x - Math.sin(heading) * 85,
+      34,
+      z + Math.cos(heading) * 85,
+    );
+    camLook.current.set(x, 3, z);
   }, []);
 
   // Keyboard: the helm
@@ -296,10 +305,15 @@ export default function ShipController({ env }: { env: EnvRefs }) {
         (camera as THREE.PerspectiveCamera).aspect ?? 1.6;
       const portrait = Math.max(0, Math.min(1, (1.0 - aspect) * 2.2));
       const crane = voyage.overlay ? 1 : 0;
+      // A discovery is a moment: the camera slowly circles the ship
+      // while the card is open, then eases back astern
+      if (voyage.overlay) orbit.current += dt * 0.09;
+      else orbit.current *= Math.max(0, 1 - dt * 1.2);
+      const viewAngle = heading + orbit.current;
       const back = 26 + crane * 10 + speed * 0.5 + portrait * 9;
       const height = 8.5 + crane * 5 + portrait * 3;
-      const bx = x - Math.sin(heading) * back;
-      const bz = z + Math.cos(heading) * back;
+      const bx = x - Math.sin(viewAngle) * back;
+      const bz = z + Math.cos(viewAngle) * back;
       targetPos = new THREE.Vector3(bx, height, bz);
       targetLook = new THREE.Vector3(
         x + Math.sin(heading) * 14,
@@ -329,6 +343,16 @@ export default function ShipController({ env }: { env: EnvRefs }) {
     camPos.current.lerp(targetPos, ck);
     camLook.current.lerp(targetLook, ck);
     camera.position.copy(camPos.current);
+    // The storm gets into the camera: a tremor with each bolt, and a
+    // constant low shudder in heavy seas
+    const stormT = stormIntensityAt(x, z);
+    const shake =
+      env.lightning.current * stormT * 0.4 + stormT * 0.06;
+    if (shake > 0.005 && voyage.mode !== "underwater") {
+      camera.position.x += (Math.random() - 0.5) * shake;
+      camera.position.y += (Math.random() - 0.5) * shake * 0.6;
+      camera.position.z += (Math.random() - 0.5) * shake;
+    }
     camera.lookAt(camLook.current);
   });
 
