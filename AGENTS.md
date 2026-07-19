@@ -29,16 +29,24 @@ Tailwind 4 (`@theme inline` in `globals.css`) · zustand 5.
 
 ## Architecture rules
 
-- **Single route.** The whole experience lives at `/`; chapters are zustand
-  state (`useVoyage`), not URLs.
-- **Refs across the React/three boundary.** Chapter changes GSAP-tween
-  mutable refs; `useFrame` reads them per frame. Never put per-frame values
-  in React state. No allocations inside `useFrame` callbacks.
+- **Single route.** The whole experience lives at `/`; world state is
+  zustand (`useVoyage`, `useExploration`), not URLs.
+- **Refs across the React/three boundary.** Per-frame values live in
+  mutable refs and the `shipPose` module singleton, never React state; the
+  HUD samples `shipPose` on an interval. No allocations inside `useFrame`
+  callbacks.
+- **Gameplay logic is pure and tested.** Sailing physics
+  (`src/lib/sailing.ts`), world layout/environment/collision
+  (`src/lib/world.ts`), puzzles (`src/lib/puzzles.ts`), constellations
+  (`src/lib/constellations.ts`), and the Navigator brain are plain
+  functions with vitest coverage; scene components only integrate them.
 - **`src/lib/waves.ts` is the single source of truth** for the ocean
   surface — the GLSL (`WAVE_GLSL`) and TS (`waveHeight`) implementations
   must stay in sync; the ship rides the TS version of the same field.
-- **Chapter tuning lives in data**, not components: camera, weather, and
-  copy are all in `src/lib/chapters.ts`.
+- **World tuning lives in data**, not components: places, stories, hints,
+  environment presets, and keep-out cores are all in `src/lib/world.ts`.
+  Events trigger from position/action (see `ShipController`), never from a
+  script order.
 - **Persisted community state** (`useMemoryBoard`) is localStorage-seeded
   today; its interfaces (`LogEntry`, `MapLight`) are the future wire
   contract — don't change them casually.

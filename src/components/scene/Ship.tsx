@@ -4,7 +4,16 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { waveHeight, waveSlope } from "@/lib/waves";
+import { hullPoint, halfBeam, sheerHeight, HULL_LENGTH } from "@/lib/hull";
 import { shipPose, useVoyage } from "@/lib/store";
+
+/**
+ * The galley, lofted from real hull lines (src/lib/hull.ts) and dressed
+ * with canvas-painted planking — still zero binary assets. She rides the
+ * wave field, heels with rudder and wind, and her sail breathes.
+ */
+
+const SAIL_COLOR = "#d8cdb4";
 
 /** Soft radial glow texture for the lantern halo. */
 function useGlowTexture(color: string) {
@@ -27,28 +36,124 @@ function useGlowTexture(color: string) {
   }, [color]);
 }
 
-/**
- * A stylized ancient galley, built procedurally — no model files to load.
- * She rides the exact wave field the ocean shader displaces, so hull and
- * water never disagree.
- */
+/** Weathered plank texture, painted on a canvas. */
+function usePlankTexture(base: string, gap: string, repeat: [number, number]) {
+  return useMemo(() => {
+    if (typeof document === "undefined") return null;
+    const w = 256;
+    const h = 256;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const c = canvas.getContext("2d")!;
+    c.fillStyle = base;
+    c.fillRect(0, 0, w, h);
+    const plankH = 32;
+    let seed = 7;
+    const rand = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+    for (let y = 0; y < h; y += plankH) {
+      // Grain streaks
+      for (let i = 0; i < 46; i++) {
+        const gy = y + 2 + rand() * (plankH - 4);
+        const gx = rand() * w;
+        const len = 12 + rand() * 60;
+        const tone = rand();
+        c.strokeStyle =
+          tone > 0.5
+            ? `rgba(0, 0, 0, ${0.05 + rand() * 0.1})`
+            : `rgba(255, 225, 180, ${0.03 + rand() * 0.05})`;
+        c.lineWidth = 0.8 + rand() * 1.4;
+        c.beginPath();
+        c.moveTo(gx, gy);
+        c.lineTo(gx + len, gy + (rand() - 0.5) * 3);
+        c.stroke();
+      }
+      // Seam between planks
+      c.fillStyle = gap;
+      c.fillRect(0, y + plankH - 2, w, 2);
+      // Butt joints
+      for (let j = 0; j < 3; j++) {
+        const bx = rand() * w;
+        c.fillRect(bx, y, 2, plankH);
+      }
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(repeat[0], repeat[1]);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, [base, gap, repeat]);
+}
 
-const WOOD_DARK = "#2a2015";
-const WOOD_MID = "#3a2c1d";
-const SAIL_COLOR = "#d8cdb4";
+const STATIONS = 36;
+const SKIN_STEPS = 9;
 
+/** Loft the hull skin from the pure hull-line functions. */
 function useHullGeometry() {
   return useMemo(() => {
-    // Hull profile: a pointed, upswept bow and stern via a lofted shape
-    const points: THREE.Vector2[] = [];
-    for (let i = 0; i <= 20; i++) {
-      const t = i / 20; // 0 = keel, 1 = gunwale
-      const r = 1.6 * Math.sin(t * Math.PI * 0.5); // belly curve
-      points.push(new THREE.Vector2(Math.max(r, 0.01), t * 1.7));
+    const positions: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+
+    for (const side of [1, -1] as const) {
+      const base = positions.length / 3;
+      for (let i = 0; i <= STATIONS; i++) {
+        const t = i / STATIONS;
+        for (let j = 0; j <= SKIN_STEPS; j++) {
+          const u = j / SKIN_STEPS;
+          const [x, y, z] = hullPoint(t, u, side);
+          positions.push(x, y, z);
+          uvs.push(t * 4, u);
+        }
+      }
+      const row = SKIN_STEPS + 1;
+      for (let i = 0; i < STATIONS; i++) {
+        for (let j = 0; j < SKIN_STEPS; j++) {
+          const a = base + i * row + j;
+          const b = a + row;
+          if (side === 1) indices.push(a, b, a + 1, b, b + 1, a + 1);
+          else indices.push(a, a + 1, b, b, a + 1, b + 1);
+        }
+      }
     }
-    const lathe = new THREE.LatheGeometry(points, 24);
-    lathe.scale(1, 1, 3.6); // stretch into a hull
-    return lathe;
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+}
+
+/** Deck planked to the hull's actual plan view. */
+function useDeckGeometry() {
+  return useMemo(() => {
+    const positions: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+    const N = 24;
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const w = Math.max(halfBeam(t) * 0.92, 0.02);
+      const z = HULL_LENGTH / 2 - t * HULL_LENGTH;
+      const y = sheerHeight(t) - 0.28;
+      positions.push(-w, y, z, w, y, z);
+      uvs.push(0, t * 6, 1, t * 6);
+      if (i < N) {
+        const a = i * 2;
+        indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    return geo;
   }, []);
 }
 
@@ -60,35 +165,50 @@ export default function Ship({ waveAmpRef }: ShipProps) {
   const group = useRef<THREE.Group>(null);
   const sailRef = useRef<THREE.Mesh>(null);
   const hullGeo = useHullGeometry();
+  const deckGeo = useDeckGeometry();
   const lanternRef = useRef<THREE.PointLight>(null);
   const glowTexture = useGlowTexture("rgba(255, 165, 90, 0.5)");
+  const hullTex = usePlankTexture("#241a12", "#0e0a06", [4, 1]);
+  const deckTex = usePlankTexture("#3a2c1e", "#171008", [2, 6]);
 
   useFrame(({ clock }) => {
     const g = group.current;
     if (!g) return;
     const t = clock.elapsedTime;
     const amp = waveAmpRef.current;
-    const { x, z, sailsUp } = {
-      ...shipPose,
-      sailsUp: useVoyage.getState().sailsUp,
-    };
+    const { x, z, lean } = shipPose;
+    const sailsUp = useVoyage.getState().sailsUp;
 
     // Ride the swell at the ship's world position
     const y = waveHeight(x, z, t, amp);
     const slope = waveSlope(x, z, t, amp);
     g.position.y = y + 0.35;
-    // Smooth toward the surface tilt so she rolls, not jitters
+    // Smooth toward surface tilt + sailing heel, so she rolls, not jitters
     const targetRx = Math.atan(slope.dz) * 0.6;
-    const targetRz = -Math.atan(slope.dx) * 0.6;
+    const targetRz = -Math.atan(slope.dx) * 0.6 + lean;
     g.rotation.x += (targetRx - g.rotation.x) * 0.04;
     g.rotation.z += (targetRz - g.rotation.z) * 0.04;
 
-    // Sails draw or furl
-    if (sailRef.current) {
+    // Sails draw or furl; the cloth breathes while drawing
+    const sail = sailRef.current;
+    if (sail) {
       const targetScale = sailsUp ? 1 : 0.08;
-      const s = sailRef.current.scale;
+      const s = sail.scale;
       s.y += (targetScale - s.y) * 0.06;
-      sailRef.current.position.y = 3.6 + (1 - s.y) * 1.85;
+      sail.position.y = 3.6 + (1 - s.y) * 1.85;
+      const pos = sail.geometry.attributes.position as THREE.BufferAttribute;
+      const base = (sail.geometry as THREE.BufferGeometry).userData
+        .belly as Float32Array;
+      for (let i = 0; i < pos.count; i++) {
+        const bx = pos.getX(i);
+        const by = pos.getY(i);
+        pos.setZ(
+          i,
+          base[i] * (0.85 + Math.sin(t * 1.7) * 0.15) +
+            Math.sin(t * 2.3 + bx * 1.8 + by * 1.1) * 0.05,
+        );
+      }
+      pos.needsUpdate = true;
     }
 
     // Lantern flicker
@@ -100,26 +220,35 @@ export default function Ship({ waveAmpRef }: ShipProps) {
 
   return (
     <group ref={group}>
-      {/* Hull: lathe profile is widest at the gunwale (top), keel below water */}
-      <mesh geometry={hullGeo} position={[0, -1.55, 0]}>
-        <meshStandardMaterial color={WOOD_DARK} roughness={0.85} metalness={0.05} />
+      {/* Hull, lofted from the hull lines and planked */}
+      <mesh geometry={hullGeo}>
+        <meshStandardMaterial
+          map={hullTex ?? undefined}
+          color={hullTex ? "#ffffff" : "#241a12"}
+          roughness={0.88}
+          metalness={0.04}
+          side={THREE.DoubleSide}
+        />
       </mesh>
-      {/* Deck: an ellipse matching the hull's waterline plan */}
-      <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.45, 5.1, 1]}>
-        <circleGeometry args={[1, 24]} />
-        <meshStandardMaterial color={WOOD_MID} roughness={0.95} />
+      {/* Deck */}
+      <mesh geometry={deckGeo}>
+        <meshStandardMaterial
+          map={deckTex ?? undefined}
+          color={deckTex ? "#ffffff" : "#3a2c1e"}
+          roughness={0.95}
+        />
       </mesh>
 
       {/* Stem & stern posts — the upswept silhouette of an ancient galley */}
       {[1, -1].map((dir) => (
-        <group key={dir} position={[0, -0.4, dir * 5.4]} rotation={[dir * -0.5, 0, 0]}>
+        <group key={dir} position={[0, 0.6, dir * 5.5]} rotation={[dir * -0.42, 0, 0]}>
           <mesh position={[0, 1.1, 0]}>
-            <cylinderGeometry args={[0.13, 0.22, 2.6, 8]} />
-            <meshStandardMaterial color={WOOD_DARK} roughness={0.85} />
+            <cylinderGeometry args={[0.13, 0.24, 2.8, 8]} />
+            <meshStandardMaterial color="#1a1410" roughness={0.85} />
           </mesh>
-          <mesh position={[0, 2.4, 0]}>
+          <mesh position={[0, 2.5, 0]}>
             <sphereGeometry args={[0.24, 10, 10]} />
-            <meshStandardMaterial color={WOOD_MID} roughness={0.8} />
+            <meshStandardMaterial color="#2b2118" roughness={0.8} />
           </mesh>
         </group>
       ))}
@@ -127,28 +256,28 @@ export default function Ship({ waveAmpRef }: ShipProps) {
       {/* Mast */}
       <mesh position={[0, 3.1, 0]}>
         <cylinderGeometry args={[0.09, 0.14, 7.4, 10]} />
-        <meshStandardMaterial color={WOOD_DARK} roughness={0.85} />
+        <meshStandardMaterial color="#1a1410" roughness={0.85} />
       </mesh>
       {/* Yard (crossbeam) */}
       <mesh position={[0, 5.6, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.06, 0.06, 5.6, 8]} />
-        <meshStandardMaterial color={WOOD_DARK} roughness={0.85} />
+        <meshStandardMaterial color="#1a1410" roughness={0.85} />
       </mesh>
 
-      {/* Square sail, gently bellied; furls when the visitor strikes it */}
+      {/* Square sail, gently bellied, animated in useFrame */}
       <Sail meshRef={sailRef} />
 
       {/* Rigging */}
-      {[[-2.6, 5.5, 0, -1.1, 0.05, 4.9] as const, [2.6, 5.5, 0, 1.1, 0.05, 4.9] as const].map(
+      {[[-2.6, 5.5, 0, -1.1, 0.35, 4.9] as const, [2.6, 5.5, 0, 1.1, 0.35, 4.9] as const].map(
         ([x1, y1, z1, x2, y2, z2], i) => (
           <RiggingLine key={i} from={[x1, y1, z1]} to={[x2, y2, z2]} />
         ),
       )}
-      <RiggingLine from={[0, 6.7, 0]} to={[0, 1.4, 5.3]} />
-      <RiggingLine from={[0, 6.7, 0]} to={[0, 1.4, -5.3]} />
+      <RiggingLine from={[0, 6.7, 0]} to={[0, 1.7, 5.4]} />
+      <RiggingLine from={[0, 6.7, 0]} to={[0, 1.7, -5.4]} />
 
       {/* Stern lantern — the one warm point in a cold world */}
-      <group position={[0, 1.5, -4.9]}>
+      <group position={[0, 1.9, -4.9]}>
         <mesh>
           <sphereGeometry args={[0.14, 10, 10]} />
           <meshStandardMaterial
@@ -157,15 +286,8 @@ export default function Ship({ waveAmpRef }: ShipProps) {
             emissiveIntensity={3.2}
           />
         </mesh>
-        <pointLight
-          ref={lanternRef}
-          color="#ff9d4d"
-          intensity={6}
-          distance={16}
-          decay={2}
-        />
         {glowTexture && (
-          <sprite scale={[2.6, 2.6, 1]}>
+          <sprite scale={[2.4, 2.4, 1]}>
             <spriteMaterial
               map={glowTexture}
               transparent
@@ -174,6 +296,13 @@ export default function Ship({ waveAmpRef }: ShipProps) {
             />
           </sprite>
         )}
+        <pointLight
+          ref={lanternRef}
+          color="#ff9d4d"
+          intensity={6}
+          distance={16}
+          decay={2}
+        />
       </group>
     </group>
   );
@@ -183,14 +312,15 @@ function Sail({ meshRef }: { meshRef: React.RefObject<THREE.Mesh | null> }) {
   const geo = useMemo(() => {
     const g = new THREE.PlaneGeometry(4.9, 3.9, 12, 8);
     const pos = g.attributes.position;
+    const belly = new Float32Array(pos.count);
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
-      // belly the sail toward the bow
-      const belly =
+      belly[i] =
         Math.cos((x / 4.9) * Math.PI) * Math.cos((y / 3.9) * Math.PI) * 0.7;
-      pos.setZ(i, belly);
+      pos.setZ(i, belly[i]);
     }
+    g.userData.belly = belly;
     g.computeVertexNormals();
     return g;
   }, []);

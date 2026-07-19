@@ -72,6 +72,8 @@ export const shipPose = {
   speed: 0,
   windDirection: 0,
   windStrength: 0.8,
+  /** Sailing heel (roll), radians — rudder + crosswind pressure */
+  lean: 0,
 };
 
 /* ------------------------------------------------------------------ */

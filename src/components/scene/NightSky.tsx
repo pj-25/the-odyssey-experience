@@ -96,6 +96,51 @@ export function Moon({
   // explicit target at the anchor's centre to keep its direction constant.
   const lightTarget = useMemo(() => new THREE.Object3D(), []);
 
+  // A painted moon face: maria basins, rim-lit craters
+  const moonTexture = useMemo(() => {
+    if (typeof document === "undefined") return null;
+    const size = 512;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const c = canvas.getContext("2d")!;
+    c.fillStyle = "#e9edf8";
+    c.fillRect(0, 0, size, size);
+    let seed = 20260717;
+    const rand = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+    for (let i = 0; i < 9; i++) {
+      const x = size * (0.25 + rand() * 0.5);
+      const y = size * (0.2 + rand() * 0.55);
+      const r = size * (0.07 + rand() * 0.13);
+      const g = c.createRadialGradient(x, y, r * 0.2, x, y, r);
+      g.addColorStop(0, `rgba(150, 158, 178, ${0.32 + rand() * 0.2})`);
+      g.addColorStop(1, "rgba(150, 158, 178, 0)");
+      c.fillStyle = g;
+      c.beginPath();
+      c.arc(x, y, r, 0, Math.PI * 2);
+      c.fill();
+    }
+    for (let i = 0; i < 40; i++) {
+      const x = size * (0.12 + rand() * 0.76);
+      const y = size * (0.12 + rand() * 0.76);
+      const r = 2 + rand() * 9;
+      c.fillStyle = `rgba(140, 148, 170, ${0.15 + rand() * 0.2})`;
+      c.beginPath();
+      c.arc(x, y, r, 0, Math.PI * 2);
+      c.fill();
+      c.strokeStyle = `rgba(255, 255, 255, ${0.12 + rand() * 0.15})`;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.arc(x - r * 0.15, y - r * 0.15, r * 0.85, 0, Math.PI * 2);
+      c.stroke();
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, []);
+
   const haloTexture = useMemo(() => {
     if (typeof document === "undefined") return null;
     const size = 256;
@@ -130,9 +175,13 @@ export function Moon({
         position={[-MOON_POSITION.x, -MOON_POSITION.y, -MOON_POSITION.z]}
       />
       {/* fog=false: the moon must burn through the sea haze */}
-      <mesh>
+      <mesh rotation={[0, Math.PI * 0.9, 0.4]}>
         <sphereGeometry args={[7, 32, 32]} />
-        <meshBasicMaterial color="#e8eeff" fog={false} />
+        <meshBasicMaterial
+          map={moonTexture ?? undefined}
+          color={moonTexture ? "#ffffff" : "#e8eeff"}
+          fog={false}
+        />
       </mesh>
       {haloTexture && (
         <sprite scale={[46, 46, 1]}>

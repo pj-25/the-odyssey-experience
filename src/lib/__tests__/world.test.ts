@@ -76,3 +76,37 @@ describe("environmentAt", () => {
     }
   });
 });
+
+describe("resolveCollision", () => {
+  it("leaves open water untouched", async () => {
+    const { resolveCollision } = await import("../world");
+    const r = resolveCollision(50, -50);
+    expect(r).toEqual({ x: 50, z: -50, hit: false });
+  });
+
+  it("slides the ship out of an island core", async () => {
+    const { resolveCollision, KEEP_OUTS } = await import("../world");
+    const core = KEEP_OUTS[0];
+    const r = resolveCollision(core.x + 2, core.z);
+    expect(r.hit).toBe(true);
+    expect(Math.hypot(r.x - core.x, r.z - core.z)).toBeCloseTo(core.r, 6);
+  });
+
+  it("leaves the Siren Gates passage sailable", async () => {
+    const { resolveCollision } = await import("../world");
+    // Midway between the two cliff cores
+    const r = resolveCollision(-150, -89);
+    expect(r.hit).toBe(false);
+  });
+
+  it("keeps every interaction reachable from outside its core", async () => {
+    const { resolveCollision, getPoi } = await import("../world");
+    // E-action ranges from ShipController: beacon 34, temple 38, cave 32
+    for (const [id, range] of [["beacon", 34], ["temple", 38], ["cave", 32]] as const) {
+      const p = getPoi(id)!;
+      const r = resolveCollision(p.x, p.z); // teleported dead-centre
+      const d = Math.hypot(r.x - p.x, r.z - p.z);
+      expect(d).toBeLessThan(range);
+    }
+  });
+});

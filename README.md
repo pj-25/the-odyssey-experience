@@ -2,31 +2,40 @@
 
 *A voyage before the film.*
 
-An immersive 3D web experience celebrating Christopher Nolan's **The
-Odyssey** (in theatres July 17, 2026). Visitors board an ancient ship on a
-cinematic night sea and drift through five chapters inspired by the epic's
-timeless themes — the journey, curiosity, courage, homecoming, and
-community — then leave their mark alongside travellers from around the
-world.
+An immersive, freely explorable 3D world celebrating Christopher Nolan's
+**The Odyssey** (in theatres July 17, 2026). Take the helm of an ancient
+ship on an open night sea: sail by wind and constellation, discover
+islands and ruins, brave the storm, dive to a sunken city, and let a
+finished chart reveal the city beyond the fog — then leave your mark
+alongside travellers from around the world.
 
 Not a movie website. A once-in-a-generation cultural event, shared.
 
 ## What's aboard
 
-- 🌊 **A living sea** — custom shader ocean, procedural ancient galley
-  riding the exact same wave field, seeded starfield, glowing moon,
-  drifting mist. Weather is narrative: the storm *arrives* in The Trials.
-- 📖 **Five chapters** — camera voyages between moods, each with a
-  public-domain Homer epigraph, a reflection, and a question to carry.
+- ⛵ **Free sailing** — real(ish) square-rig physics: steer, trim, furl;
+  the wind wanders and the compass rose tells you where it favours.
+- ✨ **Navigate by the stars** — six constellations each point to a
+  secret; press C and follow the one that burns.
+- 🏝️ **Seven places to discover** — the Siren Gates, a drowned temple
+  with a wakeable colossus, a glowing cave, a watchfire that answers with
+  the northern lights, a sunken city you can dive into, the storm trial,
+  and a finale only a completed chart can see.
+- 🧩 **Optional riddles** — a glyph ring and a cavern-star puzzle, solved
+  in story, never gated by score.
+- 🐬 **A living sea** — dolphins race the bow, gulls wheel over land, a
+  whale surfaces in deep water, shooting stars fall, rain and lightning
+  live inside the storm. Custom shader ocean; the galley rides the exact
+  same wave field.
 - ⏳ **Global premiere countdown** — one clock, every visitor under it.
-- 🕯️ **Voyage Log** — reflections left before and after watching the film.
-- 🗺️ **Travellers' Map** — a hand-sketched chart; click to light your harbour.
-- 🧭 **The Navigator** — a spoiler-free companion for conversation about
-  Homer's epic, its history, and Nolan's craft.
-- 🏛️ **Personal journey & achievements** — your timeline of shores reached,
-  remembered between visits.
-- 🎼 **Generative ambience** — ocean and orchestral drone synthesized live
-  in WebAudio. Zero audio files.
+- 🕯️ **Voyage Log & Travellers' Map** — reflections and lights left by
+  travellers before and after the film.
+- 🧭 **The Navigator** — a spoiler-free companion who knows your journey:
+  ask for a heading, your progress, or the lore behind it all.
+- 📖 **The Journal** — your chart fills in as you explore; honours are
+  earned by sailing.
+- 🎼 **Generative ambience** — ocean, drone, thunder, and underwater
+  muffling synthesized live in WebAudio. Zero audio files.
 
 ## Run it
 

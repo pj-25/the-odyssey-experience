@@ -26,6 +26,65 @@ function seeded(seed: number): () => number {
   };
 }
 
+/**
+ * A cone knocked about until it reads as rock: vertices jittered
+ * radially and vertically, faces kept flat-shaded. Weathering, cheaply.
+ */
+function makeCraggyCone(
+  radius: number,
+  height: number,
+  seed: number,
+): THREE.BufferGeometry {
+  const geo = new THREE.ConeGeometry(radius, height, 7, 3);
+  const rand = seeded(seed);
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  // Jitter shared positions consistently: key vertices by location
+  const moved = new Map<string, [number, number, number]>();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const key = `${x.toFixed(3)},${y.toFixed(3)},${z.toFixed(3)}`;
+    let d = moved.get(key);
+    if (!d) {
+      const rr = Math.hypot(x, z);
+      const amp = rr > 0.01 ? 1 : 0.25; // keep the summit tighter
+      d = [
+        (rand() - 0.5) * radius * 0.42 * amp,
+        (rand() - 0.5) * height * 0.14,
+        (rand() - 0.5) * radius * 0.42 * amp,
+      ];
+      moved.set(key, d);
+    }
+    pos.setXYZ(i, x + d[0], y + d[1], z + d[2]);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function CraggyRock({
+  radius,
+  height,
+  seed,
+  color,
+  ...meshProps
+}: {
+  radius: number;
+  height: number;
+  seed: number;
+  color: string;
+} & Omit<React.ComponentProps<"mesh">, "color">) {
+  const geo = useMemo(
+    () => makeCraggyCone(radius, height, seed),
+    [radius, height, seed],
+  );
+  return (
+    <mesh geometry={geo} {...meshProps}>
+      <meshStandardMaterial color={color} roughness={1} flatShading />
+    </mesh>
+  );
+}
+
 /** A cluster of jagged rock cones — the basic island unit. */
 function RockPile({
   seed,
@@ -55,14 +114,15 @@ function RockPile({
   return (
     <group>
       {rocks.map((r, i) => (
-        <mesh
+        <CraggyRock
           key={i}
+          radius={r.r}
+          height={r.h}
+          seed={seed * 100 + i}
+          color={color}
           position={[r.x, r.h * 0.32 - 1, r.z]}
           rotation={[r.tilt, r.rot, r.tilt * 0.7]}
-        >
-          <coneGeometry args={[r.r, r.h, 6]} />
-          <meshStandardMaterial color={color} roughness={1} flatShading />
-        </mesh>
+        />
       ))}
     </group>
   );
@@ -106,17 +166,25 @@ function SirenGates() {
       {/* Twin towers with a sailable gap between */}
       <group position={[-16, 0, 0]}>
         <RockPile seed={21} count={5} spread={20} height={16} color={ROCK_DARK} />
-        <mesh position={[0, 17, 0]} rotation={[0.06, 0.4, 0.08]}>
-          <coneGeometry args={[7.5, 42, 6]} />
-          <meshStandardMaterial color={ROCK_DARK} roughness={1} flatShading />
-        </mesh>
+        <CraggyRock
+          radius={7.5}
+          height={42}
+          seed={210}
+          color={ROCK_DARK}
+          position={[0, 17, 0]}
+          rotation={[0.06, 0.4, 0.08]}
+        />
       </group>
       <group position={[16, 0, 2]}>
         <RockPile seed={22} count={5} spread={20} height={14} color={ROCK_DARK} />
-        <mesh position={[0, 15, 0]} rotation={[-0.05, 1.2, -0.07]}>
-          <coneGeometry args={[6.8, 38, 6]} />
-          <meshStandardMaterial color={ROCK_DARK} roughness={1} flatShading />
-        </mesh>
+        <CraggyRock
+          radius={6.8}
+          height={38}
+          seed={220}
+          color={ROCK_DARK}
+          position={[0, 15, 0]}
+          rotation={[-0.05, 1.2, -0.07]}
+        />
       </group>
     </group>
   );
@@ -214,20 +282,48 @@ function GlowingCave() {
 
   return (
     <group position={[p.x, 0, p.z]}>
-      {/* The massif */}
-      <mesh position={[0, 8, -14]} scale={[1.6, 1, 1.3]}>
-        <sphereGeometry args={[26, 12, 9]} />
-        <meshStandardMaterial color={ROCK_DARK} roughness={1} flatShading />
-      </mesh>
+      {/* The massif — a mountain, not a dome */}
+      <CraggyRock
+        radius={30}
+        height={34}
+        seed={330}
+        color={ROCK_DARK}
+        position={[0, 12, -14]}
+        scale={[1.5, 1, 1.25]}
+      />
+      <CraggyRock
+        radius={22}
+        height={24}
+        seed={331}
+        color={ROCK_DARK}
+        position={[-18, 8, -26]}
+        rotation={[0, 1.1, 0]}
+      />
+      <CraggyRock
+        radius={18}
+        height={20}
+        seed={332}
+        color={ROCK_DARK}
+        position={[20, 6, -24]}
+        rotation={[0, 2.3, 0]}
+      />
       {/* Mouth flanks + lintel */}
-      <mesh position={[-11, 4, 8]} rotation={[0, 0.4, 0.15]}>
-        <coneGeometry args={[6, 20, 6]} />
-        <meshStandardMaterial color={ROCK} roughness={1} flatShading />
-      </mesh>
-      <mesh position={[11, 4, 8]} rotation={[0, -0.5, -0.13]}>
-        <coneGeometry args={[6, 18, 6]} />
-        <meshStandardMaterial color={ROCK} roughness={1} flatShading />
-      </mesh>
+      <CraggyRock
+        radius={6}
+        height={20}
+        seed={310}
+        color={ROCK}
+        position={[-11, 4, 8]}
+        rotation={[0, 0.4, 0.15]}
+      />
+      <CraggyRock
+        radius={6}
+        height={18}
+        seed={320}
+        color={ROCK}
+        position={[11, 4, 8]}
+        rotation={[0, -0.5, -0.13]}
+      />
       <mesh position={[0, 12.5, 8]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[3.4, 3.4, 18, 6]} />
         <meshStandardMaterial color={ROCK} roughness={1} flatShading />
@@ -331,14 +427,15 @@ function HiddenCity() {
   const p = getPoi("hiddenCity")!;
   const towers = useMemo(() => {
     const rand = seeded(61);
-    return Array.from({ length: 14 }, () => {
+    return Array.from({ length: 16 }, () => {
       const a = rand() * Math.PI * 2;
-      const r = rand() * 34;
+      const r = 4 + rand() * 24;
       return {
         x: Math.cos(a) * r,
         z: Math.sin(a) * r,
-        h: 8 + rand() * 26,
-        w: 3 + rand() * 4,
+        // Terraced skyline: taller toward the heart of the city
+        h: 5 + rand() * 10 + (26 - r) * 0.5,
+        w: 2.2 + rand() * 2.6,
       };
     });
   }, []);
@@ -351,19 +448,20 @@ function HiddenCity() {
           <mesh position={[0, t.h / 2 - 1, 0]}>
             <boxGeometry args={[t.w, t.h, t.w]} />
             <meshStandardMaterial
-              color="#3a3428"
-              emissive="#d98e2b"
-              emissiveIntensity={0.22}
-              roughness={0.9}
+              color="#2e2a20"
+              emissive="#b87d26"
+              emissiveIntensity={0.3}
+              roughness={0.85}
+              flatShading
             />
           </mesh>
           <mesh position={[0, t.h - 0.6, 0]}>
             <coneGeometry args={[t.w * 0.72, t.w * 0.9, 4]} />
-            <meshStandardMaterial color="#8a6a2a" emissive="#c8952e" emissiveIntensity={0.5} roughness={0.7} />
+            <meshStandardMaterial color="#6e5522" emissive="#e0a938" emissiveIntensity={0.9} roughness={0.6} />
           </mesh>
         </group>
       ))}
-      <pointLight color="#ffb95e" intensity={40} distance={160} decay={1.7} position={[0, 26, 0]} />
+      <pointLight color="#ffb95e" intensity={50} distance={180} decay={1.7} position={[0, 30, 0]} />
     </group>
   );
 }

@@ -96,7 +96,7 @@ function GuidingConstellation() {
     (starsRef.current!.material as THREE.PointsMaterial).opacity =
       fade.current * pulse;
     (linesRef.current!.material as THREE.LineBasicMaterial).opacity =
-      fade.current * 0.5 * pulse;
+      fade.current * 0.85 * pulse;
   });
 
   return (
@@ -104,7 +104,7 @@ function GuidingConstellation() {
       <points ref={starsRef} geometry={starGeo} visible={false}>
         <pointsMaterial
           color="#ffe9b8"
-          size={7}
+          size={10}
           sizeAttenuation={false}
           transparent
           depthWrite={false}
@@ -187,7 +187,7 @@ const AURORA_FRAGMENT = /* glsl */ `
         sin(vUv.x * 14.0 + uTime * 0.35)
       + sin(vUv.x * 23.0 - uTime * 0.21) * 0.5;
     float curtain = smoothstep(0.0, 0.35, vUv.y) * smoothstep(1.0, 0.5, vUv.y);
-    float intensity = curtain * (0.5 + 0.5 * bands) * 0.4;
+    float intensity = curtain * (0.5 + 0.5 * bands) * 0.6;
     vec3 color = mix(vec3(0.12, 0.85, 0.55), vec3(0.3, 0.5, 0.9), vUv.y);
     gl_FragColor = vec4(color * intensity, intensity);
   }
@@ -202,8 +202,8 @@ function Aurora() {
   });
   if (!lit) return null;
   return (
-    <mesh position={[0, 140, -300]} rotation={[0.25, 0, 0]}>
-      <planeGeometry args={[520, 130, 1, 1]} />
+    <mesh position={[0, 115, -270]} rotation={[0.25, 0, 0]}>
+      <planeGeometry args={[560, 150, 1, 1]} />
       <shaderMaterial
         ref={matRef}
         vertexShader={AURORA_VERTEX}

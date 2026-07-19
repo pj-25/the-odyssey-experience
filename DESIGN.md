@@ -2,6 +2,64 @@
 
 *An immersive night-sea voyage celebrating Christopher Nolan's "The Odyssey" (in theatres July 17, 2026).*
 
+> **Revision 2 — The Open World.** The voyage is no longer a linear
+> chapter reel: the visitor now holds the helm. Sections marked ⚓ describe
+> the interactive world that replaced chapter navigation; the original
+> creative foundations below still stand.
+
+---
+
+## ⚓ The Interactive World
+
+**Philosophy: the world reacts, curiosity pays, nothing is scripted.**
+Every event triggers from *position and action*, not narration order.
+
+**Free sailing.** A pure physics model (`src/lib/sailing.ts`) drives the
+ship: square-rig efficiency vs. a slowly wandering wind, rudder authority
+that grows with way, first-order acceleration. A/D steer, W/S trim, Space
+sets or furls, and the compass rose shows ship's head and the gold wind
+needle. Soft collision cores (`KEEP_OUTS`) keep rock solid while leaving
+the Siren Gates' passage sailable. The pose persists — returning
+travellers resume where they anchored.
+
+**Navigation by constellation.** Six invented constellations (Gates,
+Watcher, Lantern, Flame, Amphora, Crown) each point to a place. Pressing C
+turns the gaze to the sign of the nearest undiscovered secret, drawn
+bright on the dome along its true bearing — the sky is the quest compass.
+
+**Places, each with its own mechanic** (`src/lib/world.ts`):
+
+| Place | Interaction | Reward |
+|---|---|---|
+| Home Shore | departure & return | the framing story |
+| Siren Gates | sail the gap between the cliffs | chart fragment |
+| Drowned Temple | glyph-ring puzzle ("dawn, sea, storm, home") | the Watcher wakes · fragment |
+| Glowing Cave | join the cavern stars in falling order | crystal bloom · fragment |
+| Watchfire Isle | light the beacon (E) | aurora borealis · fragment |
+| Sunken City | dive (E), find the amphora among the ruins | fragment |
+| The Storm | sail deep into it — it cannot be clicked, only braved | trial endured |
+| City Beyond the Fog | hidden until all five fragments align; dawn breaks as you approach | the finale |
+
+**Environmental storytelling.** The environment is a continuous function
+of position (`environmentAt`): the storm builds across its rim, the
+harbour calms the water, the cave hushes the sky, dawn breaks near the
+finished chart's city. Dolphins pace a moving ship, gulls wheel over land,
+a whale surfaces in deep water every few minutes, shooting stars cross on
+their own schedule, rain and lightning live inside the storm, and the
+aurora is a permanent gift after the beacon is lit.
+
+**Puzzles** are optional, forgiving (wrong step = gentle reset), validated
+by pure logic (`src/lib/puzzles.ts`), and pay out in *story and world
+change* — an awakened statue, a blooming cavern — with fragments as the
+through-line. Fragments come from discovery, so no puzzle ever gates the
+finale.
+
+**The living Navigator.** The companion now sees the journey
+(`NavigatorContext`): asked for a heading it names a compass direction and
+the constellation to follow; asked for progress it recounts discoveries;
+its storm and beacon answers change with the world's state. The knowledge
+base (Homer, themes, Nolan's craft, spoiler policy) remains beneath.
+
 ---
 
 ## 1. Creative Vision
@@ -81,14 +139,21 @@ State layers:
 
 ## 5. 3D World Design
 
-- **Ocean** — 600 m shader plane; vertex displacement = sum of four
-  directional sines (`src/lib/waves.ts` is the single source of truth,
-  mirrored in GLSL and TS so the ship rides the exact same surface).
-  Fragment: depth gradient, crest lift, horizon fresnel, distance-attenuated
-  moon-path specular, exp² fog.
-- **Ship** — fully procedural galley (lathe hull widest at the gunwale,
-  bellied square sail, upswept stem/stern, rigging, flickering stern
-  lantern). Bobs and rolls via the wave field's analytic slope, smoothed.
+- **Ocean** — 600 m shader plane that follows the ship on its own vertex
+  grid; displacement = sum of four directional sines (`src/lib/waves.ts`
+  is the single source of truth, mirrored in GLSL and TS so the ship rides
+  the exact same surface). Fragment: two drifting FBM layers perturb the
+  normal for micro-chop (distance-faded so the horizon stays calm),
+  whitecaps gated by sea state (glassy harbour, frothing storm), a
+  spreading V wake astern of the hull, surf breathing against every island
+  core, depth gradient, horizon fresnel, distance-attenuated moon-path
+  specular, exp² fog. Mesh fog uses the *sky* color so distant land melts
+  into haze; the water keeps its own warmer horizon glow.
+- **Ship** — hull lofted from real hull lines (`src/lib/hull.ts`: beam,
+  keel, and sheer curves, unit-tested), skinned with canvas-painted
+  planking; bellied square sail whose cloth breathes per-frame; upswept
+  stem/stern, rigging, haloed stern lantern. She bobs and rolls on the
+  wave field's analytic slope and heels under rudder and crosswind.
 - **Sky** — 2,400-star Points cloud (seeded PRNG → identical sky for every
   visitor, a deliberate "same night everywhere" statement), twinkle in the
   vertex shader; moon = emissive disc + additive halo sprite + the scene's
@@ -187,7 +252,8 @@ only for UI state — the 60 fps path never touches reconciliation.
 | Phase | Scope | Status |
 |---|---|---|
 | **1 — The Voyage** | 3D world, five chapters, countdown, voyage log, map, timeline, achievements, Navigator (scripted), generative audio, a11y, tests | ✅ built |
-| **2 — The Crowd** | Backend for log/map (Postgres + moderation), live "lights this hour" counter, Claude-powered Navigator behind `/api`, OG share images | next |
+| **1.5 — The Open World** | Free sailing + wind, constellation navigation, seven discoverable places, two puzzles, dive mode, wildlife, storm/lightning/rain, aurora, hidden-city finale, context-aware Navigator, journal & chart | ✅ built |
+| **2 — The Crowd** | Backend for log/map (Postgres + moderation), other travellers' ships visible at sea, beacons lit together, community-wide mysteries, Claude-powered Navigator behind `/api` | next |
 | **3 — The Premiere** | Release-night mode: synchronized global moment at T-0, "where did you watch it?" board promoted, after-phase default | before Jul 17 |
 | **4 — The Memory** | Photo/memory wall with moderation, community achievement reveals, downloadable "voyage certificate" | post-release |
 

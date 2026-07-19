@@ -112,12 +112,15 @@ function EnvironmentDirector({ env }: { env: EnvRefs }) {
     }
     env.lightning.current = Math.max(0, env.lightning.current - d * 3.2);
 
-    // Apply to scene fog / background (flash tints both)
+    // Apply to scene fog / background (flash tints both). Mesh fog uses
+    // the SKY color so distant geometry melts into the sky instead of
+    // silhouetting; the ocean keeps its own warmer fog uniform for the
+    // horizon glow on the water.
     const flash = env.lightning.current * stormT;
     if (scene.fog instanceof THREE.FogExp2) {
       scene.fog.density = env.fogDensity.current;
       scene.fog.color
-        .copy(env.fogColor.current)
+        .copy(env.skyColor.current)
         .lerp(scene3.current.tmpB.set("#4a5a78"), flash * 0.7);
     } else {
       scene.fog = new THREE.FogExp2("#0a1830", env.fogDensity.current);

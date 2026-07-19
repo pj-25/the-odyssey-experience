@@ -14,6 +14,8 @@ import { useVoyage, useExploration } from "@/lib/store";
 
 const SITE = getPoi("diveSite")!;
 const MARBLE_DEEP = "#4a5468";
+/** Faint teal self-light so the ruins read as drowned mass, not void */
+const RUIN_GLOW = { emissive: "#123844", emissiveIntensity: 0.55 } as const;
 
 function Ruins() {
   const buildings = useMemo(() => {
@@ -42,12 +44,12 @@ function Ruins() {
         <group key={i} position={[b.x, -14, b.z]} rotation={[0, b.rot, 0]}>
           <mesh position={[0, b.h / 2, 0]}>
             <boxGeometry args={[b.w, b.h, b.w]} />
-            <meshStandardMaterial color={MARBLE_DEEP} roughness={0.95} />
+            <meshStandardMaterial color={MARBLE_DEEP} roughness={0.95} {...RUIN_GLOW} />
           </mesh>
           {b.arch && (
             <mesh position={[0, b.h + 1, 0]} rotation={[Math.PI / 2, 0, 0]}>
               <torusGeometry args={[b.w * 0.6, 0.35, 6, 10, Math.PI]} />
-              <meshStandardMaterial color={MARBLE_DEEP} roughness={0.95} />
+              <meshStandardMaterial color={MARBLE_DEEP} roughness={0.95} {...RUIN_GLOW} />
             </mesh>
           )}
         </group>

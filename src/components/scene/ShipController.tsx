@@ -6,9 +6,17 @@ import * as THREE from "three";
 import {
   stepShip,
   windAt,
+  bearingTo,
   type ShipState,
 } from "@/lib/sailing";
-import { POIS, stormIntensityAt, FRAGMENT_COUNT, getPoi } from "@/lib/world";
+import { nearestSecret } from "@/lib/navigator-brain";
+import {
+  POIS,
+  stormIntensityAt,
+  resolveCollision,
+  FRAGMENT_COUNT,
+  getPoi,
+} from "@/lib/world";
 import {
   useVoyage,
   useExploration,
@@ -156,6 +164,16 @@ export default function ShipController({ env }: { env: EnvRefs }) {
         { direction: wind.direction, strength: wind.strength * trim.current },
         dt,
       );
+      // Rock is rock: slide along island cores rather than through them
+      const solid = resolveCollision(ship.current.x, ship.current.z);
+      if (solid.hit) {
+        ship.current = {
+          ...ship.current,
+          x: solid.x,
+          z: solid.z,
+          speed: ship.current.speed * 0.94,
+        };
+      }
     }
 
     const { x, z, heading, speed } = ship.current;
@@ -163,6 +181,20 @@ export default function ShipController({ env }: { env: EnvRefs }) {
     shipPose.z = z;
     shipPose.heading = heading;
     shipPose.speed = speed;
+
+    // Heel: rudder pressure in a turn plus crosswind on a drawing sail
+    {
+      const k = keys.current;
+      const rudder =
+        (k.has("a") || k.has("arrowleft") ? -1 : 0) +
+        (k.has("d") || k.has("arrowright") ? 1 : 0);
+      const crosswind = voyage.sailsUp
+        ? Math.sin(wind.direction - heading) * wind.strength
+        : 0;
+      const targetLean =
+        -rudder * Math.min(1, speed / 9) * 0.055 - crosswind * 0.05;
+      shipPose.lean += (targetLean - shipPose.lean) * Math.min(1, dt * 1.4);
+    }
 
     if (shipGroup.current) {
       shipGroup.current.position.set(x, 0, z);
@@ -235,9 +267,22 @@ export default function ShipController({ env }: { env: EnvRefs }) {
         2.5 + Math.sin(t * 0.2) * 0.4,
         z - Math.cos(heading) * 14,
       );
-      // Consulting the stars lifts the gaze
+      // Consulting the stars turns the gaze to the guiding constellation
       if (voyage.consultingStars) {
-        targetLook.y = 60;
+        const secret = nearestSecret({
+          shipX: x,
+          shipZ: z,
+          discoveredIds: exploration.discoveries.map((d) => d.poiId),
+          fragments: fragmentsOf(exploration.discoveries),
+          stormNearby: false,
+          beaconLit: exploration.beaconLit,
+        });
+        if (secret) {
+          const b = bearingTo(x, z, secret.x, secret.z);
+          targetLook.set(x + Math.sin(b) * 90, 62, z - Math.cos(b) * 90);
+        } else {
+          targetLook.y = 60;
+        }
       }
     }
     const ck = 1 - Math.exp(-dt * 1.8);

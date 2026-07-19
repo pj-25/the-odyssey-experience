@@ -27,7 +27,7 @@ export const ENV_PRESETS = {
     moonIntensity: 2.7,
     ambientIntensity: 0.34,
     waterColor: "#071627",
-    skyColor: "#050a14",
+    skyColor: "#081222",
   },
   harbor: {
     waveAmp: 0.55,
@@ -36,7 +36,7 @@ export const ENV_PRESETS = {
     moonIntensity: 3.0,
     ambientIntensity: 0.42,
     waterColor: "#0a1a2e",
-    skyColor: "#060c17",
+    skyColor: "#0b1424",
   },
   storm: {
     waveAmp: 2.6,
@@ -45,7 +45,7 @@ export const ENV_PRESETS = {
     moonIntensity: 0.9,
     ambientIntensity: 0.18,
     waterColor: "#03080e",
-    skyColor: "#04060c",
+    skyColor: "#070a11",
   },
   cave: {
     waveAmp: 0.25,
@@ -54,16 +54,16 @@ export const ENV_PRESETS = {
     moonIntensity: 0.4,
     ambientIntensity: 0.3,
     waterColor: "#062028",
-    skyColor: "#020a10",
+    skyColor: "#031017",
   },
   underwater: {
     waveAmp: 0.6,
-    fogDensity: 0.045,
-    fogColor: "#062637",
-    moonIntensity: 1.2,
-    ambientIntensity: 0.5,
+    fogDensity: 0.038,
+    fogColor: "#0a3346",
+    moonIntensity: 1.8,
+    ambientIntensity: 0.95,
     waterColor: "#051e2c",
-    skyColor: "#04202e",
+    skyColor: "#062a3a",
   },
   sunrise: {
     waveAmp: 0.5,
@@ -72,7 +72,7 @@ export const ENV_PRESETS = {
     moonIntensity: 1.4,
     ambientIntensity: 0.65,
     waterColor: "#12233c",
-    skyColor: "#1a1430",
+    skyColor: "#2b2240",
   },
 } satisfies Record<string, EnvPreset>;
 
@@ -271,6 +271,46 @@ function mixPreset(a: EnvPreset, b: EnvPreset, t: number): EnvPreset {
     waterColor: mixHex(a.waterColor, b.waterColor),
     skyColor: mixHex(a.skyColor, b.skyColor),
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Soft collision                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Solid cores the ship cannot sail through. Deliberately smaller than the
+ * visible islands — generous water, firm rock. The Siren Gates keep their
+ * sailable gap: two cores, one per cliff.
+ */
+export const KEEP_OUTS: Array<{ x: number; z: number; r: number }> = [
+  { x: 0, z: 90, r: 34 }, // home shore
+  { x: -166, z: -90, r: 13 }, // west siren cliff
+  { x: -134, z: -88, r: 13 }, // east siren cliff
+  { x: 170, z: -130, r: 9 }, // the Watcher's plinth
+  { x: -70, z: -274, r: 22 }, // cave massif
+  { x: 210, z: 60, r: 11 }, // watchfire tower
+  { x: 0, z: -480, r: 50 }, // hidden city — admire from the harbour mouth
+];
+
+/**
+ * Slide a position out of any solid core it entered. Returns the
+ * corrected position and whether a collision occurred.
+ */
+export function resolveCollision(
+  x: number,
+  z: number,
+): { x: number; z: number; hit: boolean } {
+  for (const k of KEEP_OUTS) {
+    const dx = x - k.x;
+    const dz = z - k.z;
+    const d = Math.hypot(dx, dz);
+    if (d < k.r) {
+      if (d < 1e-6) return { x: k.x + k.r, z: k.z, hit: true };
+      const s = k.r / d;
+      return { x: k.x + dx * s, z: k.z + dz * s, hit: true };
+    }
+  }
+  return { x, z, hit: false };
 }
 
 /** 0..1 — how deep inside the storm the position is. */
