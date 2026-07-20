@@ -27,6 +27,7 @@ import {
   helmInput,
 } from "@/lib/store";
 import { haptic } from "@/lib/device";
+import { camOrbit, decayOrbit } from "@/lib/camera";
 import Ship from "./Ship";
 import type { EnvRefs } from "./OdysseyScene";
 
@@ -287,12 +288,14 @@ export default function ShipController({ env }: { env: EnvRefs }) {
       const deckY =
         waveHeight(x, z, t, env.waveAmp.current) + 0.35 + 2.05;
       targetPos = new THREE.Vector3(wx, deckY, wz);
-      // Gaze past the mast at the sea ahead, with a slow natural sway
+      // Gaze past the mast at the sea ahead, with a slow natural sway;
+      // dragging turns the head, and it drifts back forward when idle
+      const gazeAngle = heading + camOrbit.azimuth;
       const sway = Math.sin(t * 0.35) * 1.6;
       targetLook = new THREE.Vector3(
-        x + Math.sin(heading) * 40 + Math.cos(heading) * sway,
-        deckY - 0.6 + Math.sin(t * 0.5) * 0.35,
-        z - Math.cos(heading) * 40 + Math.sin(heading) * sway,
+        wx + Math.sin(gazeAngle) * 40 + Math.cos(gazeAngle) * sway,
+        deckY - 0.6 + Math.sin(t * 0.5) * 0.35 - camOrbit.pitch * 30,
+        wz - Math.cos(gazeAngle) * 40 + Math.sin(gazeAngle) * sway,
       );
       // The head tracks the deck tightly — a soft camera here reads as
       // floating off the ship, not standing on it
@@ -309,16 +312,29 @@ export default function ShipController({ env }: { env: EnvRefs }) {
       // while the card is open, then eases back astern
       if (voyage.overlay) orbit.current += dt * 0.09;
       else orbit.current *= Math.max(0, 1 - dt * 1.2);
-      const viewAngle = heading + orbit.current;
-      const back = 26 + crane * 10 + speed * 0.5 + portrait * 9;
-      const height = 8.5 + crane * 5 + portrait * 3;
+      // The visitor's own hand on the camera: orbit, zoom, pan
+      const viewAngle = heading + orbit.current + camOrbit.azimuth;
+      const back =
+        (26 + crane * 10 + speed * 0.5 + portrait * 9) * camOrbit.zoom;
+      const height = Math.max(
+        2.2,
+        (8.5 + crane * 5 + portrait * 3) * (0.5 + 0.5 * camOrbit.zoom) +
+          back * Math.tan(camOrbit.pitch),
+      );
       const bx = x - Math.sin(viewAngle) * back;
       const bz = z + Math.cos(viewAngle) * back;
-      targetPos = new THREE.Vector3(bx, height, bz);
+      // Pan shifts camera and target together, in view space
+      const panWX = Math.cos(viewAngle) * camOrbit.panX;
+      const panWZ = Math.sin(viewAngle) * camOrbit.panX;
+      targetPos = new THREE.Vector3(
+        bx + panWX,
+        height + camOrbit.panY,
+        bz + panWZ,
+      );
       targetLook = new THREE.Vector3(
-        x + Math.sin(heading) * 14,
-        2.5 + Math.sin(t * 0.2) * 0.4,
-        z - Math.cos(heading) * 14,
+        x + Math.sin(heading) * 14 + panWX,
+        2.5 + Math.sin(t * 0.2) * 0.4 + camOrbit.panY,
+        z - Math.cos(heading) * 14 + panWZ,
       );
     }
     // Consulting the stars turns the gaze to the guiding constellation
@@ -339,6 +355,9 @@ export default function ShipController({ env }: { env: EnvRefs }) {
         targetLook.y = 60;
       }
     }
+    // Manual framing eases home after a few idle seconds; zoom persists
+    decayOrbit(camOrbit, dt, performance.now());
+
     const ck = 1 - Math.exp(-dt * camStiffness);
     camPos.current.lerp(targetPos, ck);
     camLook.current.lerp(targetLook, ck);

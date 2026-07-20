@@ -280,7 +280,9 @@ export default function HelmHUD() {
               <div className="space-y-1.5 text-xs text-ink-dim text-center">
                 <p>
                   <span className="text-gold-bright">Drag the sea</span> left or
-                  right to steer
+                  right to steer ·{" "}
+                  <span className="text-gold-bright">two fingers</span> to look
+                  around · <span className="text-gold-bright">pinch</span> to zoom
                 </p>
                 <p>
                   Tap the <span className="text-gold-bright">speed dial</span> to
@@ -301,6 +303,7 @@ export default function HelmHUD() {
                 <span><Kbd>C</Kbd> read the stars</span>
                 <span><Kbd>V</Kbd> step aboard</span>
                 <span><Kbd>E</Kbd> act</span>
+                <span>drag to look · scroll to zoom · <Kbd>⇧</Kbd>drag to pan</span>
               </div>
             )}
             <p className="text-center text-[11px] text-ink-dim/70 mt-2 font-display italic">

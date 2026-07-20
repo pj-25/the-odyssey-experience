@@ -56,7 +56,12 @@ is a permanent gift after the beacon is lit.
 **Cinematic camera & light.** Taking the helm is a descent: the frame
 opens high and wide and settles astern. Every discovery slowly orbits the
 ship while its card is open, then eases back. The storm gets into the
-camera — a tremor with each bolt, a low shudder in heavy seas. Light
+camera — a tremor with each bolt, a low shudder in heavy seas. The
+visitor's own hand is welcome on the camera too: drag (or two fingers) to
+orbit, scroll (or pinch) to zoom, Shift-drag to pan — and on deck, drag
+turns your head. Manual rotation and pan ease back to the composed follow
+shot after a few idle seconds (`src/lib/camera.ts`, tested); zoom is a
+preference and persists. The camera guides, but never fights. Light
 lives on the water: the bow lantern lays a flickering warm pool that
 sails with you, the lit watchfire pours firelight across its whole bay,
 and every lightning flash blinks silver across the sea and sky together.

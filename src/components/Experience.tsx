@@ -9,7 +9,7 @@ import Journal from "./ui/Journal";
 import PuzzlePanel from "./ui/PuzzlePanel";
 import Navigator from "./ui/Navigator";
 import AudioToggle from "./ui/AudioToggle";
-import TouchHelm from "./ui/TouchHelm";
+import HelmGestures from "./ui/HelmGestures";
 
 // The 3D world is the heaviest cargo aboard — split it out and load it
 // client-side only, behind a themed loading state.
@@ -22,7 +22,7 @@ export default function Experience() {
   return (
     <>
       <OdysseyScene />
-      <TouchHelm />
+      <HelmGestures />
       <Hero />
       <HelmHUD />
       <DiscoveryOverlay />
