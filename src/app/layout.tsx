@@ -15,29 +15,33 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "The Odyssey — A Voyage Before the Film",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
+  title: "The Odyssey Voyage — an unofficial fan tribute",
   description:
-    "An immersive night-sea voyage celebrating Christopher Nolan's The Odyssey. Cross five chapters of an epic journey, leave a reflection in the global voyage log, and count down to the premiere with travellers around the world.",
+    "An immersive night-sea voyage made by fans to celebrate the excitement around Christopher Nolan's The Odyssey. Sail freely by wind and constellation, discover islands and ruins, and leave a reflection alongside travellers around the world. Independent and unofficial — not affiliated with the filmmakers or studio.",
   keywords: [
     "The Odyssey",
-    "Christopher Nolan",
+    "fan tribute",
     "Homer",
     "immersive experience",
-    "film premiere",
+    "sailing",
     "voyage",
   ],
+  robots: { index: true, follow: true },
   openGraph: {
-    title: "The Odyssey — A Voyage Before the Film",
+    title: "The Odyssey Voyage — an unofficial fan tribute",
     description:
-      "Board the ship. Cross the night sea. Count down to the premiere with travellers around the world.",
+      "Take the helm on an open night sea. Discover, dive, brave the storm — a fan-made celebration for fellow movie lovers.",
     type: "website",
-    siteName: "The Odyssey Experience",
+    siteName: "The Odyssey Voyage (fan-made)",
   },
   twitter: {
     card: "summary_large_image",
-    title: "The Odyssey — A Voyage Before the Film",
+    title: "The Odyssey Voyage — an unofficial fan tribute",
     description:
-      "An immersive night-sea voyage celebrating Christopher Nolan's The Odyssey.",
+      "An immersive fan-made night-sea voyage celebrating the excitement around The Odyssey.",
   },
 };
 

@@ -85,7 +85,7 @@ const TOPICS: NavigatorTopic[] = [
     id: "watch-party",
     keywords: ["watch", "ticket", "premiere", "release", "when", "date", "theater", "theatre", "cinema"],
     reply:
-      "The film reaches theatres on July 17, 2026 — the countdown above the horizon is ticking toward it. My counsel: see it large, see it loud, and see it with people. Then come back here, add your light to the map, and tell the voyage log where you watched it. The story isn't finished until it's shared.",
+      "The film premiered July 17, 2026 — it is in theatres now. My counsel: see it large, see it loud, and see it with people. Then come back here, add your light to the map, and tell the voyage log where you watched it. The story isn't finished until it's shared.",
   },
   {
     id: "prompt-request",

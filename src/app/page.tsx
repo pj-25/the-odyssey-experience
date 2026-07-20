@@ -8,7 +8,8 @@ export default function Home() {
   return (
     <main>
       <h1 className="sr-only">
-        The Odyssey — an immersive voyage celebrating Christopher Nolan&apos;s film
+        The Odyssey Voyage — an unofficial, fan-made immersive tribute
+        celebrating the excitement around Christopher Nolan&apos;s film
       </h1>
       <p className="sr-only">
         Take the helm of an ancient ship on an open, cinematic night sea.
@@ -20,7 +21,11 @@ export default function Home() {
         courage, curiosity, sacrifice, friendship, and the unknown. Leave a
         reflection in the global voyage log, mark your harbour on the
         travellers&apos; map, and count down to the premiere on July 17,
-        2026 with fans around the world.
+        2026 with fans around the world. This is an independent fan project
+        by movie and storytelling enthusiasts — not affiliated with,
+        endorsed by, or an official product of the filmmakers, studio,
+        distributors, or rights holders. All narrative content draws on
+        Samuel Butler&apos;s public-domain translation of Homer.
       </p>
       <noscript>
         <div style={{ padding: "4rem 2rem", textAlign: "center" }}>

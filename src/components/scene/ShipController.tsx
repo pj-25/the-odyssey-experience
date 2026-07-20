@@ -26,7 +26,7 @@ import {
   shipPose,
   helmInput,
 } from "@/lib/store";
-import { haptic } from "@/lib/device";
+import { haptic, prefersReducedMotion } from "@/lib/device";
 import { camOrbit, decayOrbit } from "@/lib/camera";
 import Ship from "./Ship";
 import type { EnvRefs } from "./OdysseyScene";
@@ -140,6 +140,9 @@ export default function ShipController({ env }: { env: EnvRefs }) {
       if (k === "escape") {
         st.setOverlay(null);
         st.setPuzzle(null);
+        st.setJournalOpen(false);
+        st.setNavigatorOpen(false);
+        st.setConsultingStars(false);
       }
     };
     const up = (e: KeyboardEvent) => keys.current.delete(e.key.toLowerCase());
@@ -309,8 +312,9 @@ export default function ShipController({ env }: { env: EnvRefs }) {
       const portrait = Math.max(0, Math.min(1, (1.0 - aspect) * 2.2));
       const crane = voyage.overlay ? 1 : 0;
       // A discovery is a moment: the camera slowly circles the ship
-      // while the card is open, then eases back astern
-      if (voyage.overlay) orbit.current += dt * 0.09;
+      // while the card is open, then eases back astern (unless the
+      // visitor asked for reduced motion — then the frame holds still)
+      if (voyage.overlay && !prefersReducedMotion()) orbit.current += dt * 0.09;
       else orbit.current *= Math.max(0, 1 - dt * 1.2);
       // The visitor's own hand on the camera: orbit, zoom, pan
       const viewAngle = heading + orbit.current + camOrbit.azimuth;
@@ -365,8 +369,9 @@ export default function ShipController({ env }: { env: EnvRefs }) {
     // The storm gets into the camera: a tremor with each bolt, and a
     // constant low shudder in heavy seas
     const stormT = stormIntensityAt(x, z);
-    const shake =
-      env.lightning.current * stormT * 0.4 + stormT * 0.06;
+    const shake = prefersReducedMotion()
+      ? 0
+      : env.lightning.current * stormT * 0.4 + stormT * 0.06;
     if (shake > 0.005 && voyage.mode !== "underwater") {
       camera.position.x += (Math.random() - 0.5) * shake;
       camera.position.y += (Math.random() - 0.5) * shake * 0.6;

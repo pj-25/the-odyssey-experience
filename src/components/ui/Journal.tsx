@@ -14,13 +14,14 @@ import {
 import Countdown from "./Countdown";
 import WorldMap from "./WorldMap";
 
-type Tab = "chart" | "log" | "map" | "honours";
+type Tab = "chart" | "log" | "map" | "honours" | "about";
 
 const TABS: Array<[Tab, string]> = [
   ["chart", "The Chart"],
   ["log", "Voyage Log"],
   ["map", "Travellers' Map"],
   ["honours", "Honours"],
+  ["about", "About"],
 ];
 
 /** The captain's journal: your chart, the community's words and lights. */
@@ -91,6 +92,7 @@ export default function Journal() {
               {tab === "log" && <VoyageLog />}
               {tab === "map" && <WorldMap />}
               {tab === "honours" && <Honours />}
+              {tab === "about" && <About />}
             </div>
           </motion.div>
         </motion.div>
@@ -315,6 +317,53 @@ function LogCard({ entry }: { entry: LogEntry }) {
         {entry.mine && <span className="ml-2 text-gold">— you</span>}
       </p>
     </li>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* About: what this is, who it's for, and what it isn't                 */
+/* ------------------------------------------------------------------ */
+
+function About() {
+  return (
+    <div className="max-w-prose">
+      <h3 className="font-display text-2xl text-ink font-light mb-3">
+        A fan-made voyage
+      </h3>
+      <div className="space-y-4 text-sm text-ink-dim leading-relaxed">
+        <p>
+          This experience is an independent, unofficial tribute made by movie
+          and storytelling enthusiasts — a place to share the excitement
+          around Christopher Nolan&apos;s <em>The Odyssey</em>, experience the
+          anticipation together, and celebrate what we hope becomes an
+          unforgettable cinematic moment.
+        </p>
+        <p className="text-ink/90">
+          It is <strong className="text-gold-bright font-normal">not
+          affiliated with, endorsed by, or an official product of</strong> the
+          filmmakers, the studio, distributors, or any rights holders. No
+          footage, artwork, music, or promotional material from the film is
+          used here.
+        </p>
+        <p>
+          Everything you see and hear is original and hand-built: the sea,
+          the ship, the islands, and the music are generated in your browser,
+          and every quotation is drawn from Samuel Butler&apos;s
+          public-domain translation of Homer&apos;s epic. There are no
+          spoilers aboard — only the three-thousand-year-old story that
+          started it all.
+        </p>
+        <p>
+          The first few entries in the Voyage Log are illustrative, written
+          to welcome you into the harbour. Everything you add stays on your
+          own device.
+        </p>
+        <p className="font-display italic text-ink-dim/80">
+          Built with love by fans, for fans. See the film, then come back and
+          tell the sea where you watched it.
+        </p>
+      </div>
+    </div>
   );
 }
 

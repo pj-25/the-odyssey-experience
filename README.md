@@ -1,15 +1,20 @@
-# The Odyssey Experience
+# The Odyssey Voyage — an unofficial fan tribute
 
-*A voyage before the film.*
+*A sea we cross together.*
 
-An immersive, freely explorable 3D world celebrating Christopher Nolan's
-**The Odyssey** (in theatres July 17, 2026). Take the helm of an ancient
-ship on an open night sea: sail by wind and constellation, discover
-islands and ruins, brave the storm, dive to a sunken city, and let a
-finished chart reveal the city beyond the fog — then leave your mark
-alongside travellers from around the world.
+An immersive, freely explorable 3D world made by fans to celebrate the
+excitement around Christopher Nolan's **The Odyssey** (in theatres since
+July 17, 2026). Take the helm of an ancient ship on an open night sea:
+sail by wind and constellation, discover islands and ruins, brave the
+storm, dive to a sunken city, and let a finished chart reveal the city
+beyond the fog — then leave your mark alongside travellers from around
+the world.
 
-Not a movie website. A once-in-a-generation cultural event, shared.
+> **Independent fan project.** Not affiliated with, endorsed by, or an
+> official product of the filmmakers, studio, distributors, or rights
+> holders. No film assets are used: everything is procedural and original,
+> and all quotations come from Samuel Butler's public-domain translation
+> of Homer. Built by movie lovers, for movie lovers.
 
 ## What's aboard
 
@@ -51,7 +56,10 @@ npm run lint                     # eslint
 ```
 
 Optional env: `NEXT_PUBLIC_PREMIERE_ISO` overrides the premiere moment
-(defaults to `2026-07-17T00:00:00Z`).
+(defaults to `2026-07-17T00:00:00Z`); `NEXT_PUBLIC_SITE_URL` sets the
+public origin for social-preview URLs. `?no3d=1` (or a device without
+WebGL) serves a lightweight CSS harbour with the community features
+intact. See `RELEASE.md` for the full pre-release checklist.
 
 ## Docs
 

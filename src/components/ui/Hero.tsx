@@ -25,7 +25,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 0.6, duration: 1.4 } }}
           >
-            A voyage for everyone awaiting the film
+            An unofficial fan-made tribute · by movie lovers, for movie lovers
           </motion.p>
 
           <motion.h1
@@ -45,7 +45,8 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { delay: 1.4, duration: 1.6 } }}
           >
-            A film by Christopher Nolan — and a sea we cross together.
+            Celebrating the excitement around Christopher Nolan&apos;s
+            film — a sea we cross together.
           </motion.p>
 
           <motion.div
@@ -74,6 +75,16 @@ export default function Hero() {
             animate={{ opacity: 1, transition: { delay: 3.4, duration: 1.5 } }}
           >
             An open sea · Sail anywhere · Headphones recommended · No spoilers aboard
+          </motion.p>
+
+          <motion.p
+            className="relative mt-3 text-[11px] leading-relaxed text-ink-dim/60 max-w-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { delay: 3.8, duration: 1.5 } }}
+          >
+            An independent fan project. Not affiliated with, endorsed by, or an
+            official product of the filmmakers, studio, or rights holders. All
+            story content draws on Homer&apos;s public-domain epic.
           </motion.p>
         </motion.div>
       )}
