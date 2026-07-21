@@ -4,7 +4,8 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getPoi, FRAGMENT_COUNT } from "@/lib/world";
-import { useExploration, fragmentsOf } from "@/lib/store";
+import { useExploration, fragmentsOf, shipPose } from "@/lib/store";
+import { proximityGlow, approachLevel, breathe, flameFlicker } from "@/lib/glow";
 
 /**
  * Every place on the chart, built from primitives. Rocks are deliberately
@@ -132,6 +133,16 @@ function RockPile({
 
 function HomeShore() {
   const p = getPoi("harbor")!;
+  const lamp = useRef<THREE.PointLight>(null);
+  const pane = useRef<THREE.MeshStandardMaterial>(null);
+
+  // The lamp is alive: a gentle flame flicker that never quite settles
+  useFrame(({ clock }) => {
+    const f = flameFlicker(clock.elapsedTime, 0.16);
+    if (lamp.current) lamp.current.intensity = 10 * f;
+    if (pane.current) pane.current.emissiveIntensity = 2.6 * f;
+  });
+
   return (
     <group position={[p.x, 0, p.z + 30]}>
       <RockPile seed={11} count={9} spread={70} height={10} />
@@ -148,12 +159,13 @@ function HomeShore() {
         <mesh position={[0, 0.4, -1.55]}>
           <planeGeometry args={[0.8, 1.1]} />
           <meshStandardMaterial
+            ref={pane}
             color="#ffb45e"
             emissive="#ff9d3d"
             emissiveIntensity={2.6}
           />
         </mesh>
-        <pointLight color="#ffab55" intensity={10} distance={40} decay={2} position={[0, 0.5, -3]} />
+        <pointLight ref={lamp} color="#ffab55" intensity={10} distance={40} decay={2} position={[0, 0.5, -3]} />
       </group>
     </group>
   );
@@ -274,10 +286,17 @@ function GlowingCave() {
   const glow = useRef<THREE.PointLight>(null);
 
   useFrame(({ clock }) => {
-    if (glow.current) {
-      const base = solved ? 26 : 10;
-      glow.current.intensity = base + Math.sin(clock.elapsedTime * 1.7) * base * 0.25;
-    }
+    if (!glow.current) return;
+    // The cave acknowledges the visitor: faint on the horizon, it warms
+    // and beckons as the ship draws near — brighter still once its stars
+    // have been woken.
+    const near = proximityGlow(
+      Math.hypot(shipPose.x - p.x, shipPose.z - p.z),
+      30,
+      160,
+    );
+    const base = approachLevel(near, solved ? 18 : 5, solved ? 30 : 22);
+    glow.current.intensity = base * breathe(clock.elapsedTime, 0.2, 1.2);
   });
 
   return (

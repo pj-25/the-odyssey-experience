@@ -18,6 +18,8 @@ import Islands from "./Islands";
 import Wildlife from "./Wildlife";
 import SkyEvents from "./SkyEvents";
 import Underwater from "./Underwater";
+import Atmosphere from "./Atmosphere";
+import PostFX from "./PostFX";
 import { Stars, Moon, Mist, Clouds, MOON_POSITION } from "./NightSky";
 
 /**
@@ -259,7 +261,9 @@ export default function OdysseyScene() {
         <ShipController env={env} />
         <Islands />
         <Wildlife quality={quality} />
+        <Atmosphere quality={quality} />
         <Underwater />
+        {quality === "high" && <PostFX />}
       </Canvas>
     </div>
   );
